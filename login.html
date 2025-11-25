@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><title>Login Kostory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{background:linear-gradient(135deg,#e67e22,#f39c12);margin:0;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .box{background:white;padding:40px;border-radius:16px;box-shadow:0 15px 40px rgba(0,0,0,0.3);width:380px;text-align:center;}
+  .logo{font-size:62px;font-weight:900;color:#e67e22;letter-spacing:-3px;margin-bottom:10px;}
+  input{width:100%;padding:14px;margin:12px 0;border:1px solid #ddd;border-radius:10px;font-size:16px;}
+  button{width:100%;padding:14px;background:#e67e22;color:white;border:none;border-radius:10px;font-size:17px;cursor:pointer;}
+  .error{color:#c0392b;background:#fadbd8;padding:10px;border-radius:8px;margin-top:15px;display:none;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">Kostory</div>
+  <div style="font-size:12px;color:#777;letter-spacing:2px;margin-bottom:30px;">WHERE STORIES FIND HOME</div>
+  <h2 style="margin:20px 0;color:#333;">Login Invoice</h2>
+
+  <input type="email" id="email" placeholder="Email" value="admin@kostory.com">
+  <input type="password" id="pass" placeholder="Password">
+
+  <button onclick="login()">MASUK</button>
+  <div class="error" id="err"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = { /* SAMA PERSIS seperti di index.html */ };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.login = () => {
+  const email = document.getElementById("email").value;
+  const pass  = document.getElementById("pass").value;
+  const err   = document.getElementById("err");
+  err.style.display = "none";
+
+  signInWithEmailAndPassword(auth, email, pass)
+    .then(() => location.href = "index.html")
+    .catch(() => { err.textContent = "Email/password salah!"; err.style.display = "block"; });
+};
+</script>
+</body>
+</html>
