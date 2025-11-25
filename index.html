@@ -8,7 +8,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
@@ -26,7 +25,6 @@
   .btn-primary{background:#e67e22;color:white;width:100%;font-size:16px;}
   .btn-success{background:#27ae60;color:white;}
   .btn-info{background:#3498db;color:white;font-size:13px;}
-  .btn-warning{background:#f39c12;color:white;font-size:13px;}
   .btn-small{padding:7px 12px;font-size:13px;margin-left:8px;}
   .auto-no{font-size:18px;font-weight:bold;color:#e67e22;background:#fff8e1;padding:12px;border-radius:8px;text-align:center;margin:15px 0;}
   .backup-box{margin:20px 0;padding:15px;background:#e8f5e9;border-radius:8px;border:2px solid #27ae60;font-size:14px;}
@@ -99,7 +97,7 @@
     <label>PIC</label>
     <input type="text" id="pic">
 
-    <!-- TOMBOL SAVE/UPDATE PELANGGAN (BARU!) -->
+    <!-- TOMBOL SAVE/UPDATE PELANGGAN -->
     <button class="btn-success" onclick="simpanPelangganSaja()" style="margin-top:12px;">
       Save/Update Pelanggan
     </button>
@@ -230,6 +228,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// ================== GLOBAL ==================
+let pelanggan = [];
+let rekeningList = [];
+let nomorFakturSudahDibuat = false;
+let nomorFakturSekarang = "";
+
+const f = n => new Intl.NumberFormat('id-ID').format(n);
+const t = d => d ? new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '';
+
 // ================== LOGIN ==================
 function login() {
   const user = document.getElementById('username').value.trim();
@@ -243,18 +250,9 @@ function login() {
   }
 }
 
-// ================== GLOBAL ==================
-let pelanggan = [];
-let rekeningList = [];
-let nomorFakturSudahDibuat = false;
-let nomorFakturSekarang = "";
-
-const f = n => new Intl.NumberFormat('id-ID').format(n);
-const t = d => d ? new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '';
-
 // ================== NOMOR FAKTUR ==================
 function getNomorFaktur() {
-  if (nomorFakturSudahDibuat) return nomorFakturSekarang;
+  if (nomorFakturSudahDibuat) return Promise.resolve(nomorFakturSekarang);
   const n = new Date();
   const y = n.getFullYear().toString().slice(-2);
   const m = String(n.getMonth() + 1).padStart(2, '0');
@@ -270,23 +268,27 @@ function getNomorFaktur() {
   }).catch(() => 'XXXXXX');
 }
 
-// ================== INIT ==================
+// ================== INIT APP (DIPERBAIKI DI SINI!) ==================
 function initApp() {
+  // PERBAIKAN UTAMA: baca data sebagai object → konversi ke array dengan Object.values()
   db.ref('pelanggan').on('value', snap => {
-    pelanggan = snap.val() || [];
+    const data = snap.val();
+    pelanggan = data ? Object.values(data) : [];
     loadPelanggan();
     update();
   });
+
   db.ref('rekening').on('value', snap => {
-    rekeningList = snap.val() || [];
+    const data = snap.val();
+    rekeningList = data ? Object.values(data) : [];
     updateRekeningList();
     update();
   });
+
   getNomorFaktur();
 }
 
 // ================== PELANGGAN ==================
-// Load dropdown
 function loadPelanggan() {
   const s = document.getElementById('pelangganSelect');
   s.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
@@ -294,7 +296,7 @@ function loadPelanggan() {
 }
 function pilihPelanggan() {
   const i = document.getElementById('pelangganSelect').value;
-  if (!i) return;
+  if (i === '') return;
   const p = pelanggan[i];
   ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = p[id] || '');
   update();
@@ -304,7 +306,6 @@ function tambahPelangganBaru() {
   ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = '');
 }
 
-// FUNGSI BARU: Save/Update Pelanggan SAJA (tanpa cetak)
 function simpanPelangganSaja() {
   const d = {
     perusahaan: document.getElementById('perusahaan').value.trim(),
@@ -322,13 +323,12 @@ function simpanPelangganSaja() {
     pelanggan.push(d);
     alert('Pelanggan baru berhasil disimpan!');
   }
-  db.ref('pelanggan').set(pelanggan);
-  loadPelanggan(); // refresh dropdown
+  db.ref('pelanggan').set(pelanggan);  // sekarang aman karena pakai Object.values()
+  loadPelanggan();
 }
 
-// Fungsi lama tetap ada (dipakai tombol Cetak Faktur)
 function simpanPelanggan() {
-  simpanPelangganSaja(); // pakai fungsi yang sama
+  simpanPelangganSaja();
 }
 
 // ================== REKENING ==================
@@ -359,8 +359,8 @@ function hapusRekening(i) {
 }
 
 // ================== UPDATE PREVIEW ==================
-function update() {
-  getNomorFaktur();
+async function update() {
+  await getNomorFaktur();
   const tag = parseInt(document.getElementById('tagihan').value) || 0;
   const bay = parseInt(document.getElementById('bayar').value) || 0;
   const sisa = tag - bay;
@@ -395,7 +395,11 @@ function downloadBackup() {
     db.ref('rekening').once('value'),
     db.ref('counters').once('value')
   ]).then(([p, r, c]) => {
-    const data = {pelanggan: p.val() || [], rekeningList: r.val() || [], counters: c.val() || {}};
+    const data = {
+      pelanggan: p.val() ? Object.values(p.val()) : [],
+      rekeningList: r.val() ? Object.values(r.val()) : [],
+      counters: c.val() || {}
+    };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
