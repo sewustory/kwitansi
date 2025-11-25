@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -246,9 +245,9 @@ function login() {
   }
 }
 
-// ================== INIT APP — PERBAIKAN UTAMA DI SINI ==================
+// ================== INIT APP — PERBAIKAN PALING KRUSIAL ==================
 function initApp() {
-  // BACA DATA DENGAN Object.values() → PASTI ARRAY & TIDAK HILANG!
+  // SELALU PAKAI Object.values() → INI YANG BIKIN DATA TIDAK HILANG!
   db.ref('pelanggan').on('value', snap => {
     const data = snap.val();
     pelanggan = data ? Object.values(data) : [];
@@ -268,24 +267,19 @@ function initApp() {
 
 // ================== NOMOR FAKTUR ==================
 function getNomorFaktur() {
-  if (nomorFakturSudahDibuat) return Promise.resolve(nomorFakturSekarang);
+  if (nomorFakturSudahDibuat) return;
   const n = new Date();
   const y = n.getFullYear().toString().slice(-2);
   const m = String(n.getMonth() + 1).padStart(2, '0');
   const key = `counter_${y}${m}`;
 
-  return db.ref('counters/' + key).transaction(current => (current || 0) + 1)
+  db.ref('counters/' + key).transaction(current => (current || 0) + 1)
     .then(result => {
       const counter = result.snapshot.val();
       nomorFakturSekarang = y + m + String(counter).padStart(3, '0');
       nomorFakturSudahDibuat = true;
       document.getElementById('autoNo').textContent = nomorFakturSekarang;
       document.getElementById('p-no').textContent = nomorFakturSekarang;
-      return nomorFakturSekarang;
-    })
-    .catch(err => {
-      console.error(err);
-      return 'XXXXXX';
     });
 }
 
@@ -293,9 +287,7 @@ function getNomorFaktur() {
 function loadPelanggan() {
   const s = document.getElementById('pelangganSelect');
   s.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
-  pelanggan.forEach((p, i) => {
-    s.add(new Option(p.perusahaan, i));
-  });
+  pelanggan.forEach((p, i) => s.add(new Option(p.perusahaan, i)));
 }
 
 function pilihPelanggan() {
@@ -326,10 +318,10 @@ function simpanPelangganSaja() {
   const existingIndex = pelanggan.findIndex(x => x.perusahaan === d.perusahaan);
   if (existingIndex > -1) {
     pelanggan[existingIndex] = d;
-    alert('Data pelanggan berhasil diperbarui!');
+    alert('Data pelanggan diperbarui!');
   } else {
     pelanggan.push(d);
-    alert('Pelanggan baru berhasil disimpan!');
+    alert('Pelanggan baru disimpan!');
   }
   db.ref('pelanggan').set(pelanggan);
   loadPelanggan();
@@ -371,8 +363,7 @@ function hapusRekening(i) {
 }
 
 // ================== UPDATE PREVIEW ==================
-async function update() {
-  await getNomorFaktur();
+function update() {
   const tag = parseInt(document.getElementById('tagihan').value) || 0;
   const bay = parseInt(document.getElementById('bayar').value) || 0;
   const sisa = tag - bay;
