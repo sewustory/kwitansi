@@ -74,7 +74,7 @@
 
     <label>Perusahaan</label><input type="text" id="perusahaan">
     <label>Kota</label><input type="text" id="kota">
-    <label>No. HP\u2003</label><input type="text" id="hp">
+    <label>No. HP</label><input type="text" id="hp">
     <label>PIC</label><input type="text" id="pic">
 
     <hr>
@@ -114,11 +114,10 @@
     </div>
     <div class="rekening-list" id="daftarRekening"></div>
 
-    <!-- TOMBOL CETAK DIPERBAIKI: await semua async dulu baru print -->
-    <button class="btn-primary" onclick="cetakFaktur()">
-      Cetak Faktur
-    </button>
+    <!-- TOMBOL CETAK DIPERBAIKI -->
+    <button class="btn-primary" onclick="cetakFaktur()">Cetak Faktur</button>
 
+    <!-- BOX BACKUP DIHAPUS TOTAL -->
   </div>
 
   <div class="history-section">
@@ -130,7 +129,7 @@
   </div>
 </div>
 
-<!-- PRINT AREA — TIDAK BERUBAH SAMA SEKALI -->
+<!-- PRINT AREA — 100% SAMA -->
 <div id="printArea">
   <div class="invoice">
     <div class="header">
@@ -154,7 +153,7 @@
     </div>
     <div>
       <strong>DITAGIH KEPADA:</strong><br>
-      <span id="p-perusahaan Svensk">PT. CONTOH</span><br>
+      <span id="p-perusahaan">PT. CONTOH</span><br>
       <span id="p-kota">Palembang</span><br>
       PIC: <span id="p-pic">Budi</span><br>
       HP: <span id="p-hp">0812xxxxxx</span>
@@ -226,16 +225,87 @@ if (!localStorage.getItem("kostory_loggedin")) {
   window.location.href = "login.html";
 }
 
-/* === SEMUA FUNGSI TETAP SAMA === */
-async function loadPelanggan() { /* ... sama persis ... */ }
-window.pilihPelanggan = async () => { /* ... */ };
-window.tambahPelangganBaru = () => { /* ... */ };
-async function simpanPelanggan() { /* ... */ }
+async function loadPelanggan() {
+  const s = document.getElementById('pelangganSelect');
+  s.innerHTML = '<option>-- Pilih Pelanggan --</option>';
+  const q = query(colPelanggan, orderBy("perusahaan"));
+  const snap = await getDocs(q);
+  snap.forEach(d => {
+    const p = d.data();
+    s.appendChild(new Option(p.perusahaan, d.id));
+  });
+}
+
+window.pilihPelanggan = async () => {
+  const id = document.getElementById('pelangganSelect').value;
+  if (!id) return;
+  const snap = await getDoc(doc(db, "pelanggan", id));
+  if (snap.exists()) {
+    const p = snap.data();
+    ['perusahaan','kota','hp','pic'].forEach(k => document.getElementById(k).value = p[k] || '');
+    update();
+  }
+};
+
+window.tambahPelangganBaru = () => {
+  document.getElementById('pelangganSelect').value = '';
+  ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = '');
+};
+
+async function simpanPelanggan() {
+  const data = {
+    perusahaan: document.getElementById('perusahaan').value.trim(),
+    kota: document.getElementById('kota').value.trim(),
+    hp: document.getElementById('hp').value.trim(),
+    pic: document.getElementById('pic').value.trim()
+  };
+  if (!data.perusahaan) return alert("Nama perusahaan wajib diisi!");
+  const existing = await getDocs(query(colPelanggan, where("perusahaan", "==", data.perusahaan)));
+  if (!existing.empty) {
+    await updateDoc(existing.docs[0].ref, data);
+  } else {
+    await addDoc(colPelanggan, data);
+  }
+  loadPelanggan();
+}
 
 let rekeningList = [];
-async function loadRekening() { /* ... sama persis ... */ }
-window.tambahRekening = async () => { /* ... */ };
-window.hapusRekening = async (id) => { /* ... */ };
+async function loadRekening() {
+  rekeningList = [];
+  const sel = document.getElementById('pilihRekening');
+  const list = document.getElementById('daftarRekening');
+  sel.innerHTML = ''; list.innerHTML = '';
+  const snap = await getDocs(colRekening);
+  snap.forEach(d => {
+    const r = d.data();
+    rekeningList.push(r);
+    sel.add(new Option(`${r.nama} - ${r.nomor}`, rekeningList.length - 1));
+    list.innerHTML += `<div style="display:flex;justify-content:space-between;padding:8px;background:#f9f9f9;margin:5px 0;border-radius:6px;">
+      <div><strong>${r.nama}</strong><br>${r.nomor}<br><small>${r.atasNama}</small></div>
+      <button style="background:#e74c3c;color:white;border:none;padding:4px 8px;border-radius:4px;" onclick="hapusRekening('${d.id}')">Hapus</button>
+    </div>`;
+  });
+  const saved = localStorage.getItem('kostory_rek_sel');
+  if (saved && rekeningList[saved]) sel.value = saved;
+  update();
+}
+
+window.tambahRekening = async () => {
+  const nama = prompt("Nama Bank:");
+  const nomor = prompt("Nomor Rekening:");
+  const an = prompt("Atas Nama:");
+  if (nama && nomor && an) {
+    await addDoc(colRekening, {nama, nomor, atasNama: an});
+    loadRekening();
+  }
+};
+
+window.hapusRekening = async (id) => {
+  if (confirm("Hapus rekening ini?")) {
+    await deleteDoc(doc(db, "rekening", id));
+    loadRekening();
+  }
+};
 
 async function getNomorFaktur() {
   const sekarang = new Date();
@@ -249,24 +319,106 @@ async function getNomorFaktur() {
   return key + String(n).padStart(3, '0');
 }
 
-async function simpanKeHistory() { /* ... sama persis ... */ }
-async function tampilkanHistory() { /* ... sama persis ... */ }
-async function loadHistoryKeForm(data) { /* ... sama persis ... */ }
-window.shareWA = (noHp, noFaktur) => { /* ... sama persis ... */ };
-window.hapusHistory = async (id) => { /* ... sama persis ... */ };
+async function simpanKeHistory() {
+  const newEntry = {
+    no: document.getElementById('autoNo').textContent,
+    tgl: document.getElementById('tglFaktur').value,
+    perusahaan: document.getElementById('perusahaan').value.trim(),
+    pic: document.getElementById('pic').value.trim(),
+    hp: document.getElementById('hp').value.trim(),
+    data: {
+      perusahaan: document.getElementById('perusahaan').value,
+      kota: document.getElementById('kota').value,
+      hp: document.getElementById('hp').value,
+      pic: document.getElementById('pic').value,
+      tglFaktur: document.getElementById('tglFaktur').value,
+      jatuhTempo: document.getElementById('jatuhTempo').value,
+      tipe: document.getElementById('tipe').value,
+      kamar: document.getElementById('kamar').value,
+      in: document.getElementById('in').value,
+      out: document.getElementById('out').value,
+      tagihan: document.getElementById('tagihan').value,
+      bayar: document.getElementById('bayar').value,
+      tglBayar: document.getElementById('tglBayar').value,
+      rekening: document.getElementById('pilihRekening').value
+    },
+    timestamp: serverTimestamp()
+  };
+  await addDoc(colHistory, newEntry);
+  tampilkanHistory();
+}
+
+async function tampilkanHistory() {
+  const tbody = document.querySelector('#historyTable tbody');
+  tbody.innerHTML = '';
+  const duaBulanLalu = new Date();
+  duaBulanLalu.setMonth(duaBulanLalu.getMonth() - 2);
+  const q = query(colHistory, where("tgl", ">=", duaBulanLalu.toISOString().slice(0,10)), orderBy("timestamp", "desc"));
+  const snap = await getDocs(q);
+  if (snap.empty) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:40px;">Belum ada riwayat dalam 2 bulan terakhir</td></tr>';
+    return;
+  }
+  snap.forEach(d => {
+    const h = d.data();
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${h.no}</td>
+      <td>${t(h.tgl)}</td>
+      <td>${h.perusahaan}</td>
+      <td>${h.pic}</td>
+      <td>${h.hp}</td>
+      <td>
+        <button class="action-btn btn-wa" onclick="shareWA('${h.hp.replace(/[^0-9]/g,'')}', '${h.no}')">WA</button>
+        <button class="action-btn btn-delete" onclick="hapusHistory('${d.id}')">Hapus</button>
+      </td>`;
+    row.onclick = (e) => { if(e.target.tagName!=='BUTTON') loadHistoryKeForm(h.data); };
+    tbody.appendChild(row);
+  });
+}
+
+async function loadHistoryKeForm(data) {
+  if (confirm('Edit faktur ini? Data form akan diganti.')) {
+    document.getElementById('perusahaan').value = data.perusahaan || '';
+    document.getElementById('kota').value = data.kota || '';
+    document.getElementById('hp').value = data.hp || '';
+    document.getElementById('pic').value = data.pic || '';
+    document.getElementById('tglFaktur').value = data.tglFaktur || '';
+    document.getElementById('jatuhTempo').value = data.jatuhTempo || '';
+    document.getElementById('tipe').value = data.tipe || '';
+    document.getElementById('kamar').value = data.kamar || '';
+    document.getElementById('in').value = data.in || '';
+    document.getElementById('out').value = data.out || '';
+    document.getElementById('tagihan').value = data.tagihan || '';
+    document.getElementById('bayar').value = data.bayar || '0';
+    document.getElementById('tglBayar').value = data.tglBayar || '';
+    document.getElementById('pilihRekening').value = data.rekening || '0';
+    update();
+  }
+}
+
+window.shareWA = (noHp, noFaktur) => {
+  const tagihan = f(document.getElementById('tagihan').value);
+  const text = encodeURIComponent(`*Kostory Invoice*\nNo. Faktur: ${noFaktur}\nTotal Tagihan: Rp${tagihan}\n\nTerima kasih!`);
+  window.open(`https://wa.me/${noHp}?text=${text}`, '_blank');
+};
+
+window.hapusHistory = async (id) => {
+  if (confirm('Hapus faktur dari riwayat?')) {
+    await deleteDoc(doc(db, "history", id));
+    tampilkanHistory();
+  }
+};
 
 const f = n => new Intl.NumberFormat('id-ID').format(n);
 const t = d => new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
 
-/* === FUNGSI UPDATE + CETAK YANG DIPERBAIKI === */
 window.update = async () => {
   const no = await getNomorFaktur();
   document.getElementById('autoNo').textContent = document.getElementById('p-no').textContent = no;
-
   const tag = parseInt(document.getElementById('tagihan').value) || 0;
   const bay = parseInt(document.getElementById('bayar').value) || 0;
   const sisa = tag - bay;
-
   document.getElementById('p-perusahaan').textContent = (document.getElementById('perusahaan').value || "").toUpperCase();
   document.getElementById('p-kota').textContent = document.getElementById('kota').value;
   document.getElementById('p-hp').textContent = document.getElementById('hp').value;
@@ -276,14 +428,10 @@ window.update = async () => {
   document.getElementById('p-periode').textContent = t(document.getElementById('in').value) + ' SD ' + t(document.getElementById('out').value);
   document.getElementById('p-tgl').textContent = t(document.getElementById('tglFaktur').value);
   document.getElementById('p-tempo').textContent = t(document.getElementById('jatuhTempo').value);
-
   ['p-harga','p-subtotal','p-total2','p-total'].forEach(id => document.getElementById(id).textContent = f(tag));
   document.getElementById('p-bayar').textContent = f(bay);
   document.getElementById('p-sisa').textContent = f(sisa);
-  document.getElementById('p-infoBayar').textContent = document.getElementById('tglBayar').value 
-    ? "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) 
-    : "(Belum ada pembayaran)";
-
+  document.getElementById('p-infoBayar').textContent = document.getElementById('tglBayar').value ? "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) : "(Belum ada pembayaran)";
   const ri = document.getElementById('pilihRekening').value;
   if (rekeningList[ri]) {
     const r = rekeningList[ri];
@@ -292,15 +440,15 @@ window.update = async () => {
   }
 };
 
-/* === TOMBOL CETAK YANG SEKARANG PASTI JALAN === */
+// FUNGSI CETAK YANG DIPERBAIKI
 window.cetakFaktur = async () => {
-  await simpanPelanggan();   // simpan/update pelanggan
-  await update();            // pastikan semua data ter-update (termasuk nomor faktur)
-  await simpanKeHistory();   // simpan ke riwayat
-  window.print();            // langsung cetak
+  await simpanPelanggan();
+  await update();           // pastikan nomor faktur baru muncul
+  await simpanKeHistory();
+  window.print();
 };
 
-/* Init */
+// INIT
 loadPelanggan();
 loadRekening();
 tampilkanHistory();
