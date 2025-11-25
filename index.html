@@ -30,7 +30,6 @@
   .backup-box{margin:20px 0;padding:15px;background:#e8f5e9;border-radius:8px;border:2px solid #27ae60;font-size:14px;}
   .rekening-list{max-height:180px;overflow-y:auto;margin-top:10px;padding:8px;background:#f9f9f9;border-radius:8px;}
 
-  /* INVOICE */
   .invoice {max-width:800px;margin:auto;font-size:14.5px;line-height:1.75;color:#000;}
   .header {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;}
   .logo{position:relative;}
@@ -65,7 +64,6 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginOverlay">
   <div class="loginBox">
     <h2>Kostory Invoice v8.1</h2>
@@ -97,7 +95,6 @@
     <label>PIC</label>
     <input type="text" id="pic">
 
-    <!-- TOMBOL SAVE/UPDATE PELANGGAN -->
     <button class="btn-success" onclick="simpanPelangganSaja()" style="margin-top:12px;">
       Save/Update Pelanggan
     </button>
@@ -148,7 +145,6 @@
     <button class="btn-success" onclick="exportToExcel()">Export Excel</button>
   </div>
 
-  <!-- PREVIEW (TETAP SAMA) -->
   <div class="preview-wrapper">
     <div class="preview">
       <div class="invoice">
@@ -250,27 +246,9 @@ function login() {
   }
 }
 
-// ================== NOMOR FAKTUR ==================
-function getNomorFaktur() {
-  if (nomorFakturSudahDibuat) return Promise.resolve(nomorFakturSekarang);
-  const n = new Date();
-  const y = n.getFullYear().toString().slice(-2);
-  const m = String(n.getMonth() + 1).padStart(2, '0');
-  const key = `counter_${y}${m}`;
-
-  return db.ref('counters/' + key).transaction(current => (current || 0) + 1).then(result => {
-    const counter = result.snapshot.val();
-    nomorFakturSekarang = y + m + String(counter).padStart(3, '0');
-    nomorFakturSudahDibuat = true;
-    document.getElementById('autoNo').textContent = nomorFakturSekarang;
-    document.getElementById('p-no').textContent = nomorFakturSekarang;
-    return nomorFakturSekarang;
-  }).catch(() => 'XXXXXX');
-}
-
-// ================== INIT APP (DIPERBAIKI DI SINI!) ==================
+// ================== INIT APP — PERBAIKAN UTAMA DI SINI ==================
 function initApp() {
-  // PERBAIKAN UTAMA: baca data sebagai object → konversi ke array dengan Object.values()
+  // BACA DATA DENGAN Object.values() → PASTI ARRAY & TIDAK HILANG!
   db.ref('pelanggan').on('value', snap => {
     const data = snap.val();
     pelanggan = data ? Object.values(data) : [];
@@ -288,19 +266,49 @@ function initApp() {
   getNomorFaktur();
 }
 
+// ================== NOMOR FAKTUR ==================
+function getNomorFaktur() {
+  if (nomorFakturSudahDibuat) return Promise.resolve(nomorFakturSekarang);
+  const n = new Date();
+  const y = n.getFullYear().toString().slice(-2);
+  const m = String(n.getMonth() + 1).padStart(2, '0');
+  const key = `counter_${y}${m}`;
+
+  return db.ref('counters/' + key).transaction(current => (current || 0) + 1)
+    .then(result => {
+      const counter = result.snapshot.val();
+      nomorFakturSekarang = y + m + String(counter).padStart(3, '0');
+      nomorFakturSudahDibuat = true;
+      document.getElementById('autoNo').textContent = nomorFakturSekarang;
+      document.getElementById('p-no').textContent = nomorFakturSekarang;
+      return nomorFakturSekarang;
+    })
+    .catch(err => {
+      console.error(err);
+      return 'XXXXXX';
+    });
+}
+
 // ================== PELANGGAN ==================
 function loadPelanggan() {
   const s = document.getElementById('pelangganSelect');
   s.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
-  pelanggan.forEach((p, i) => s.add(new Option(p.perusahaan, i)));
+  pelanggan.forEach((p, i) => {
+    s.add(new Option(p.perusahaan, i));
+  });
 }
+
 function pilihPelanggan() {
   const i = document.getElementById('pelangganSelect').value;
-  if (i === '') return;
+  if (i === '' || i === null) return;
   const p = pelanggan[i];
-  ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = p[id] || '');
+  document.getElementById('perusahaan').value = p.perusahaan || '';
+  document.getElementById('kota').value = p.kota || '';
+  document.getElementById('hp').value = p.hp || '';
+  document.getElementById('pic').value = p.pic || '';
   update();
 }
+
 function tambahPelangganBaru() {
   document.getElementById('pelangganSelect').value = '';
   ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = '');
@@ -323,7 +331,7 @@ function simpanPelangganSaja() {
     pelanggan.push(d);
     alert('Pelanggan baru berhasil disimpan!');
   }
-  db.ref('pelanggan').set(pelanggan);  // sekarang aman karena pakai Object.values()
+  db.ref('pelanggan').set(pelanggan);
   loadPelanggan();
 }
 
@@ -344,13 +352,17 @@ function updateRekeningList() {
     </div>`;
   });
 }
+
 function tambahRekening() {
-  const a = prompt("Nama Bank:"), b = prompt("Nomor Rekening:"), c = prompt("Atas Nama:");
+  const a = prompt("Nama Bank:");
+  const b = prompt("Nomor Rekening:");
+  const c = prompt("Atas Nama:");
   if (a && b && c) {
-    rekeningList.push({nama: a, nomor: b, atasNama: c});
+    rekeningList.push({nama: a.trim(), nomor: b.trim(), atasNama: c.trim()});
     db.ref('rekening').set(rekeningList);
   }
 }
+
 function hapusRekening(i) {
   if (confirm('Hapus rekening ini?')) {
     rekeningList.splice(i, 1);
@@ -365,7 +377,7 @@ async function update() {
   const bay = parseInt(document.getElementById('bayar').value) || 0;
   const sisa = tag - bay;
 
-  document.getElementById('p-perusahaan').textContent = (document.getElementById('perusahaan').value||"").toUpperCase();
+  document.getElementById('p-perusahaan').textContent = (document.getElementById('perusahaan').value || "").toUpperCase();
   document.getElementById('p-kota').textContent = document.getElementById('kota').value;
   document.getElementById('p-hp').textContent = document.getElementById('hp').value;
   document.getElementById('p-pic').textContent = document.getElementById('pic').value;
@@ -378,8 +390,9 @@ async function update() {
   ['p-harga','p-jumlah','p-subtotal','p-total2'].forEach(id => document.getElementById(id).textContent = f(tag));
   document.getElementById('p-bayar').textContent = f(bay);
   document.getElementById('p-sisa').textContent = f(sisa);
-  document.getElementById('p-infoBayar').textContent = document.getElementById('tglBayar').value ? 
-    "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) : "(Belum ada pembayaran)";
+  document.getElementById('p-infoBayar').textContent = document.getElementById('tglBayar').value 
+    ? "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) 
+    : "(Belum ada pembayaran)";
 
   const ri = document.getElementById('pilihRekening').value;
   if (rekeningList[ri]) {
@@ -397,7 +410,7 @@ function downloadBackup() {
   ]).then(([p, r, c]) => {
     const data = {
       pelanggan: p.val() ? Object.values(p.val()) : [],
-      rekeningList: r.val() ? Object.values(r.val()) : [],
+      rekening: r.val() ? Object.values(r.val()) : [],
       counters: c.val() || {}
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
