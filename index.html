@@ -2,87 +2,113 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kostory Invoice v8.1 — TANPA PREVIEW DI LAYAR</title>
+<title>Kostory Invoice v8.1 — ONLINE (Firebase)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:Arial,sans-serif;background:#f4f6f9;padding:15px 10px;}
-  .container{display:flex;gap:25px;max-width:1300px;margin:auto;flex-wrap:wrap;}
-  .form{width:440px;background:#fff;padding:28px;border-radius:14px;box-shadow:0 10px 35px rgba(0,0,0,0.15);position:sticky;top:15px;align-self:flex-start;}
-  h1{font-size:27px;color:#e67e22;text-align:center;margin-bottom:22px;font-weight:700;}
-  label{display:block;margin:16px 0 7px;font-weight:700;font-size:14.5px;color:#2c3e50;}
-  input,select{width:100%;padding:12px 14px;border:1px solid #ccc;border-radius:9px;font-size:15px;transition:all .2s;}
-  input:focus,select:focus{border-color:#e67e22;outline:none;box-shadow:0 0 0 3px rgba(230,126,34,.2);}
-  button{padding:12px 18px;border:none;border-radius:9px;font-weight:700;cursor:pointer;transition:.2s;}
-  .btn-primary{background:#e67e22;color:#fff;width:100%;font-size:17px;margin-top:15px;}
-  .btn-primary:hover{background:#d35400;}
-  .btn-success{background:#27ae60;color:#fff;}
-  .btn-small{padding:8px 14px;font-size:13px;margin-left:8px;}
-  .auto-no{background:#fff8e1;color:#e67e22;font-size:20px;font-weight:900;padding:14px;border-radius:10px;text-align:center;margin:20px 0;border:2px solid #e67e22;}
-  hr{margin:28px 0;border:none;border-top:2px dashed #ddd;}
-  .rekening-list{max-height:190px;overflow-y:auto;margin-top:10px;padding:10px;background:#f9f9f9;border-radius:9px;border:1px solid #eee;}
-  .history-section{flex:1;min-width:320px;}
-  .history-section h2{color:#e67e22;margin-bottom:15px;font-size:24px;}
-  .history-table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);}
-  .history-table th{background:#e67e22;color:#fff;padding:15px 12px;text-align:left;}
-  .history-table td{padding:13px 12px;border-bottom:1px solid #eee;cursor:pointer;}
-  .history-table tr:hover{background:#fff8e1;}
-  .action-btn{padding:6px 11px;margin:0 4px;border:none;border-radius:7px;color:#fff;font-size:12px;cursor:pointer;}
-  .btn-wa{background:#25d366;}
-  .btn-delete{background:#e74c3c;}
-  #printArea{display:none;}
-  @media print{
-    body *{visibility:hidden;}
-    #printArea,#printArea *{visibility:visible;}
-    #printArea{position:absolute;left:0;top:0;width:100%;padding:40px 60px;background:#fff;}
-    .invoice{max-width:800px;margin:auto;font-size:14.5px;line-height:1.75;}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;}
-    .logo{position:relative;}
-    .logo-circle{width:82px;height:82px;background:#ffca28;border-radius:50%;position:absolute;top:-12px;left:-12px;}
-    .logo-text{font-size:58px;font-weight:900;letter-spacing:-2.8px;position:relative;z-index:2;}
-    .tagline{font-size:10.8px;color:#555;margin-top:-6px;letter-spacing:1.2px;font-weight:600;}
-    .company{text-align:right;font-size:12.5px;line-height:1.75;}
-    .info{background:#f0f0f0;padding:16px 22px;border-radius:8px;display:flex;justify-content:space-between;margin:35px 0 40px;}
-    table{width:100%;border-collapse:collapse;margin:30px 0;}
-    th{background:#f8f8f8;padding:14px 10px;font-weight:bold;border-bottom:3px double #000;}
-    td{padding:14px 10px;border-bottom:1px solid #ddd;vertical-align:top;}
-    .text-right{text-align:right;}
-    .text-center{text-align:center;}
-    .total-section{float:right;width:380px;margin-top:40px;font-size:15px;}
-    .total-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd;}
-    .big-total{background:#f5f5f5;padding:16px;text-align:center;font-size:22px;font-weight:bold;border:2px solid #000;border-radius:8px;margin-top:15px;}
-    .payment-section{margin-top:100px;clear:both;}
-    .rekening{white-space:pre-line;line-height:1.8;font-size:14.5px;}
-    .notes{margin-top:30px;font-size:13.5px;line-height:1.85;}
+  * {box-sizing:border-box;}
+  body {font-family:Arial,sans-serif;margin:0;padding:15px;background:#f4f6f9;}
+  .container {display:flex;gap:20px;max-width:1600px;margin:auto;flex-wrap:wrap;}
+  .form {width:420px;background:white;padding:25px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);position:sticky;top:15px;height:fit-content;z-index:999;align-self:flex-start;}
+  .preview-wrapper {flex:1;min-width:320px;background:white;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;padding:15px;}
+  .preview {padding:40px 55px;background:white;min-height:100%;}
+
+  h1 {font-size:26px;color:#e67e22;text-align:center;margin-bottom:20px;}
+  label {display:block;margin:14px 0 6px;font-weight:bold;font-size:14px;}
+  input,select{width:100%;padding:11px;border:1px solid #ccc;border-radius:8px;font-size:14px;}
+  button{padding:11px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:8px;}
+  .btn-primary{background:#e67e22;color:white;width:100%;font-size:16px;}
+  .btn-success{background:#27ae60;color:white;}
+  .btn-info{background:#3498db;color:white;font-size:13px;}
+  .btn-warning{background:#f39c12;color:white;font-size:13px;}
+  .btn-small{padding:7px 12px;font-size:13px;margin-left:8px;}
+  .auto-no{font-size:18px;font-weight:bold;color:#e67e22;background:#fff8e1;padding:12px;border-radius:8px;text-align:center;margin:15px 0;}
+  .backup-box{margin:20px 0;padding:15px;background:#e8f5e9;border-radius:8px;border:2px solid #27ae60;font-size:14px;}
+  .rekening-list{max-height:180px;overflow-y:auto;margin-top:10px;padding:8px;background:#f9f9f9;border-radius:8px;}
+
+  /* INVOICE */
+  .invoice {max-width:800px;margin:auto;font-size:14.5px;line-height:1.75;color:#000;}
+  .header {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;}
+  .logo{position:relative;}
+  .logo-circle{width:82px;height:82px;background:#ffca28;border-radius:50%;position:absolute;top:-12px;left:-12px;}
+  .logo-text{font-size:58px;font-weight:900;letter-spacing:-2.8px;position:relative;z-index:2;}
+  .tagline{font-size:10.8px;color:#555;margin-top:-6px;letter-spacing:1.2px;font-weight:600;}
+  .company{text-align:right;font-size:12.5px;line-height:1.75;}
+  .info{background:#f0f0f0;padding:16px 22px;border-radius:8px;display:flex;justify-content:space-between;margin:35px 0 40px;}
+  table{width:100%;border-collapse:collapse;margin:30px 0;}
+  th{background:#f8f8f8;padding:14px 10px;font-weight:bold;border-bottom:3px double #000;}
+  td{padding:14px 10px;border-bottom:1px solid #ddd;vertical-align:top;}
+  .text-right{text-align:right;}
+  .text-center{text-align:center;}
+  .total-section{float:right;width:380px;margin-top:40px;font-size:15px;}
+  .total-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd;}
+  .big-total{background:#f5f5f5;padding:16px;text-align:center;font-size:22px;font-weight:bold;border:2px solid #000;border-radius:8px;margin-top:15px;}
+  .payment-section{margin-top:100px;clear:both;}
+  .rekening{white-space:pre-line;line-height:1.8;font-size:14.5px;}
+  .notes{margin-top:30px;font-size:13.5px;line-height:1.85;}
+
+  /* Login overlay */
+  #loginOverlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:9999;}
+  .loginBox {background:white;padding:40px;border-radius:16px;width:340px;text-align:center;}
+  .loginBox h2 {margin-top:0;color:#e67e22;}
+
+  @media print {
+    body{background:white;padding:0;}
+    .form,.backup-box,#loginOverlay{display:none!important;}
+    .preview-wrapper{padding:0;max-height:none;overflow:visible;}
+    .preview{padding:40px 60px;box-shadow:none;}
   }
-  @media(max-width:768px){.container{flex-direction:column;}.form{position:static;}}
 </style>
 </head>
 <body>
 
-<div class="container">
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <div class="loginBox">
+    <h2>Kostory Invoice v8.1</h2>
+    <p>Masuk dengan akun admin</p>
+    <input type="text" id="username" placeholder="Username" style="margin:10px 0;"><br>
+    <input type="password" id="password" placeholder="Password" style="margin:10px 0;"><br>
+    <button class="btn-primary" onclick="login()">Login</button>
+    <p style="margin-top:15px;font-size:12px;color:#777;">Hint: admin / ramenuno20</p>
+  </div>
+</div>
+
+<div class="container" id="mainApp" style="display:none;">
+  <!-- FORM (tetap sama) -->
   <div class="form">
     <h1>Kostory Invoice v8.1</h1>
 
     <label>Pilih Pelanggan</label>
-    <div style="display:flex;gap:8px;">
-      <select id="pelangganSelect" onchange="pilihPelanggan()" style="flex:1;"></select>
-      <button class="btn-small btn-success" onclick="tambahPelangganBaru()">+ Baru</button>
-    </div>
+    <select id="pelangganSelect" onchange="pilihPelanggan()"></select>
+    <button class="btn-small" onclick="tambahPelangganBaru()">+ Baru</button>
 
-    <label>Perusahaan</label><input type="text" id="perusahaan">
-    <label>Kota</label><input type="text" id="kota">
-    <label>No. HP</label><input type="text" id="hp">
-    <label>PIC</label><input type="text" id="pic">
+    <label>Perusahaan</label>
+    <input type="text" id="perusahaan">
 
-    <hr>
+    <label>Kota</label>
+    <input type="text" id="kota">
+
+    <label>No. HP</label>
+    <input type="text" id="hp">
+
+    <label>PIC</label>
+    <input type="text" id="pic">
+
+    <hr style="margin:25px 0;border:1px dashed #ddd;">
 
     <div class="auto-no">No. Faktur: <span id="autoNo">2511001</span></div>
 
-    <label>Tanggal Faktur</label><input type="date" id="tglFaktur" value="2025-11-28">
-    <label>Jatuh Tempo</label><input type="date" id="jatuhTempo" value="2025-12-30">
+    <label>Tanggal Faktur</label>
+    <input type="date" id="tglFaktur" value="2025-11-28">
+    <label>Jatuh Tempo</label>
+    <input type="date" id="jatuhTempo" value="2025-12-30">
 
     <label>Tipe Kamar</label>
     <select id="tipe">
@@ -94,116 +120,102 @@
       <option>Twin Bed Xtra Service</option>
     </select>
 
-    <label>Nama Kamar</label><input type="text" id="kamar" value="MEKAR 208">
+    <label>Nama Kamar</label>
+    <input type="text" id="kamar" value="MEKAR 208">
 
     <label>Check-in</label><input type="date" id="in" value="2025-11-01">
     <label>Check-out</label><input type="date" id="out" value="2025-12-01">
 
-    <label style="color:#e67e22;font-size:17px;">Total Tagihan</label>
-    <input type="number" id="tagihan" value="1950000" style="font-size:26px;font-weight:900;color:#e67e22;padding:14px;">
+    <label style="color:#e67e22;font-size:16px;">Total Tagihan</label>
+    <input type="number" id="tagihan" value="1950000" style="font-size:22px;font-weight:bold;color:#e67e22;">
 
     <label>Jumlah Dibayar</label><input type="number" id="bayar" value="0">
     <label>Tanggal Bayar</label><input type="date" id="tglBayar">
 
-    <hr>
-
+    <hr style="margin:25px 0;border:1px dashed #ddd;">
     <label>Pilih Rekening Bank</label>
-    <div style="display:flex;gap:8px;">
-      <select id="pilihRekening" onchange="update()" style="flex:1;"></select>
-      <button class="btn-small btn-success" onclick="tambahRekening()">+ Tambah</button>
-    </div>
+    <select id="pilihRekening" onchange="update()"></select>
+    <button class="btn-small btn-success" onclick="tambahRekening()">+ Tambah</button>
     <div class="rekening-list" id="daftarRekening"></div>
 
-    <!-- TOMBOL CETAK DIPERBAIKI -->
-    <button class="btn-primary" onclick="cetakFaktur()">Cetak Faktur</button>
+    <div class="backup-box">
+      <strong>Backup Data</strong><br><br>
+      <button class="btn-info" onclick="downloadBackup()">Download Backup</button>
+    </div>
 
-    <!-- BOX BACKUP DIHAPUS TOTAL -->
+    <button class="btn-primary" onclick="simpanPelanggan();window.print()">Cetak Faktur</button>
+    <button class="btn-success" onclick="exportToExcel()">Export Excel</button>
   </div>
 
-  <div class="history-section">
-    <h2>Riwayat Faktur (2 Bulan Terakhir)</h2>
-    <table class="history-table" id="historyTable">
-      <thead><tr><th>No</th><th>Tanggal</th><th>Perusahaan</th><th>PIC</th><th>HP</th><th>Aksi</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
+  <!-- PREVIEW (tetap sama) -->
+  <div class="preview-wrapper">
+    <div class="preview">
+      <div class="invoice">
+        <div class="header">
+          <div class="logo">
+            <div class="logo-circle"></div>
+            <div class="logo-text">Kostory</div>
+            <div class="tagline">WHERE STORIES FIND HOME</div>
+          </div>
+          <div class="company">
+            Kostory Palembang<br>Jl. H Sanusi Lr.Mekar 1 No.888<br>Sukabangun - Sukarami<br>Kota Palembang<br>0813-8321-0009<br>kostory888@gmail.com
+          </div>
+        </div>
 
-<!-- PRINT AREA — 100% SAMA -->
-<div id="printArea">
-  <div class="invoice">
-    <div class="header">
-      <div class="logo">
-        <div class="logo-circle"></div>
-        <div class="logo-text">Kostory</div>
-        <div class="tagline">WHERE STORIES FIND HOME</div>
+        <div class="info">
+          <div>
+            <strong>DITAGIH KEPADA</strong><br>
+            <span id="p-perusahaan">PT. DRINKISS SEJAHTERA INDONESIA</span><br>
+            <span id="p-kota">BANDUNG</span><br>
+            <span id="p-hp">0819-9997-8996</span><br>
+            <span id="p-pic">MR GUO ZHIHUI – MR BADANG SATRIO</span>
+          </div>
+          <div style="text-align:right;line-height:1.9;">
+            Faktur # <strong><span id="p-no">2511001</span></strong><br>
+            Tanggal <span id="p-tgl">28 Nov 2025</span><br>
+            Jatuh Tempo <span id="p-tempo">30 Des 2025</span>
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th style="width:55%;text-align:left;">Keterangan</th><th class="text-center">Vol</th><th class="text-right">Harga</th><th class="text-right">Jumlah</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Biaya Kost (<span id="p-tipe">Double Bed Standard</span>)<br><strong><span id="p-kamar">MEKAR 208</span></strong><br><span id="p-periode">1 November 2025 SD 1 Desember 2025</span></td>
+              <td class="text-center">1</td>
+              <td class="text-right">Rp<span id="p-harga">1.950.000</span></td>
+              <td class="text-right">Rp<span id="p-jumlah">1.950.000</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="total-section">
+          <div class="total-line">Subtotal <span>Rp<span id="p-subtotal">1.950.000</span></span></div>
+          <div class="total-line"><strong>Total</strong> <strong>Rp<span id="p-total2">1.950.000</span></strong></div>
+          <div class="total-line">Pembayaran <span>Rp<span id="p-bayar">0</span></span></div>
+          <div class="big-total">Jumlah yang Harus Dibayar<br>Rp<span id="p-sisa">1.950.000</span></div>
+        </div>
+        <div style="clear:both;"></div>
+
+        <div class="payment-section">
+          <strong>Rek. Pembayaran :</strong><br>
+          <div class="rekening" id="p-rekening">BANK MANDIRI<br>119.000.6282.842<br>A.N Y. TEKAT HERU SUSANTO ST</div>
+          <span id="p-infoBayar" style="color:#d35400;font-weight:bold;">(Belum ada pembayaran)</span>
+        </div>
+
+        <div class="notes">
+          Harap melunasi pembayaran perpanjangan 3 hari sebelum masa sewa habis.<br>
+          Segera info minimal 7 hari sebelum masa sewa habis jika tidak diperpanjang.<br>
+          Biaya sewa kost tidak bisa direfund sebagian/seluruhnya apabila ada pembatalan saat masa sewa (early Checkout).<br><br>
+          Terimakasih.
+        </div>
       </div>
-      <div class="company">
-        PT. Kostory Indonesia<br>
-        Jl. Contoh No. 123<br>
-        Palembang, Sumsel 30114<br>
-        Telp: (0711) 123456<br>
-        Email: info@kostory.id
-      </div>
-    </div>
-    <div class="info">
-      <div><strong>No. Faktur</strong><br><span id="p-no">2511001</span></div>
-      <div><strong>Tanggal Faktur</strong><br><span id="p-tgl">28 November 2025</span></div>
-      <div><strong>Jatuh Tempo</strong><br><span id="p-tempo">30 Desember 2025</span></div>
-    </div>
-    <div>
-      <strong>DITAGIH KEPADA:</strong><br>
-      <span id="p-perusahaan">PT. CONTOH</span><br>
-      <span id="p-kota">Palembang</span><br>
-      PIC: <span id="p-pic">Budi</span><br>
-      HP: <span id="p-hp">0812xxxxxx</span>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width:45%;">Deskripsi</th>
-          <th style="width:20%;">Harga</th>
-          <th style="width:15%;">Jumlah</th>
-          <th style="width:20%;text-align:right;">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Kost <span id="p-tipe">Double Bed Standard</span> - <strong><span id="p-kamar">MEKAR 208</strong></span><br>Periode: <span id="p-periode">1 November 2025 SD 1 Desember 2025</span></td>
-          <td class="text-center">Rp<span id="p-harga">1.950.000</span></td>
-          <td class="text-center"><span id="p-jumlah">1</span></td>
-          <td class="text-right">Rp<span id="p-subtotal">1.950.000</span></td>
-        </tr>
-        <tr>
-          <td colspan="3" class="text-right"><strong>Total</strong></td>
-          <td class="text-right">Rp<span id="p-total2">1.950.000</span></td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="total-section">
-      <div class="total-line"><span>Dibayar</span><span>Rp<span id="p-bayar">0</span></span></div>
-      <div class="total-line"><span>Sisa</span><span>Rp<span id="p-sisa">1.950.000</span></span></div>
-      <div class="big-total">Rp<span id="p-total">1.950.000</span></div>
-    </div>
-    <div class="payment-section">
-      <strong>PEMBAYARAN</strong><br>
-      <span id="p-infoBayar">(Belum ada pembayaran)</span><br><br>
-      <strong>Silakan transfer ke:</strong><br>
-      <span id="p-rekening">BCA<br>1234567890<br>a/n Kostory Indonesia</span>
-    </div>
-    <div class="notes">
-      <strong>Catatan:</strong><br>
-      - Pembayaran dengan cek/giro dianggap sah setelah dicairkan.<br>
-      - Faktur ini adalah bukti sah, harap simpan dengan baik.<br>
-      - Terima kasih atas kerjasama Anda.
     </div>
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, query, where, orderBy, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+<script>
+// ================== FIREBASE CONFIG ==================
 const firebaseConfig = {
   apiKey: "AIzaSyDaFM8dTqOn6c875Xe3VIfYkz4O1ioOLxA",
   authDomain: "nota-1596b.firebaseapp.com",
@@ -212,214 +224,135 @@ const firebaseConfig = {
   messagingSenderId: "921988782142",
   appId: "1:921988782142:web:ac633cf89b0b002df5196f"
 };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const colPelanggan = collection(db, "pelanggan");
-const colRekening  = collection(db, "rekening");
-const colHistory   = collection(db, "history");
-
-if (!localStorage.getItem("kostory_loggedin")) {
-  alert("Silakan login terlebih dahulu!");
-  window.location.href = "login.html";
-}
-
-async function loadPelanggan() {
-  const s = document.getElementById('pelangganSelect');
-  s.innerHTML = '<option>-- Pilih Pelanggan --</option>';
-  const q = query(colPelanggan, orderBy("perusahaan"));
-  const snap = await getDocs(q);
-  snap.forEach(d => {
-    const p = d.data();
-    s.appendChild(new Option(p.perusahaan, d.id));
-  });
-}
-
-window.pilihPelanggan = async () => {
-  const id = document.getElementById('pelangganSelect').value;
-  if (!id) return;
-  const snap = await getDoc(doc(db, "pelanggan", id));
-  if (snap.exists()) {
-    const p = snap.data();
-    ['perusahaan','kota','hp','pic'].forEach(k => document.getElementById(k).value = p[k] || '');
-    update();
+// ================== LOGIN ==================
+function login() {
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value;
+  if (user === 'admin' && pass === 'ramenuno20') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+    initApp();
+  } else {
+    alert('Username atau password salah!');
   }
-};
+}
 
-window.tambahPelangganBaru = () => {
-  document.getElementById('pelangganSelect').value = '';
-  ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = '');
-};
+// ================== VARIABEL GLOBAL ==================
+let pelanggan = [];
+let rekeningList = [];
+let nomorFakturSudahDibuat = false;
+let nomorFakturSekarang = "";
 
-async function simpanPelanggan() {
-  const data = {
+// ================== FUNGSI UTAMA (sama seperti offline, tapi pakai Firebase) ==================
+const f = n => new Intl.NumberFormat('id-ID').format(n);
+const t = d => d ? new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '';
+
+function getNomorFaktur() {
+  if (nomorFakturSudahDibuat) return nomorFakturSekarang;
+  const n = new Date();
+  const y = n.getFullYear().toString().slice(-2);
+  const m = String(n.getMonth() + 1).padStart(2, '0');
+  const key = `counter_${y}${m}`;
+
+  return db.ref('counters/' + key).transaction(current => (current || 0) + 1).then(result => {
+    const counter = result.snapshot.val();
+    nomorFakturSekarang = y + m + String(counter).padStart(3, '0');
+    nomorFakturSudahDibuat = true;
+    document.getElementById('autoNo').textContent = nomorFakturSekarang;
+    document.getElementById('p-no').textContent = nomorFakturSekarang;
+    return nomorFakturSekarang;
+  }).catch(() => 'XXXXXX');
+}
+
+// Load data dari Firebase
+function initApp() {
+  db.ref('pelanggan').on('value', snap => {
+    pelanggan = snap.val() || [];
+    loadPelanggan();
+    update();
+  });
+  db.ref('rekening').on('value', snap => {
+    rekeningList = snap.val() || [];
+    updateRekeningList();
+    update();
+  });
+  getNomorFaktur();
+}
+
+// Pelanggan
+function loadPelanggan() {
+  const s = document.getElementById('pelangganSelect');
+  s.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
+  pelanggan.forEach((p, i) => s.add(new Option(p.perusahaan, i)));
+}
+function pilihPelanggan() {
+  const i = document.getElementById('pelangganSelect').value;
+  if (!i) return;
+  const p = pelanggan[i];
+  ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = p[id] || '');
+  update();
+}
+function simpanPelanggan() {
+  const d = {
     perusahaan: document.getElementById('perusahaan').value.trim(),
     kota: document.getElementById('kota').value.trim(),
     hp: document.getElementById('hp').value.trim(),
     pic: document.getElementById('pic').value.trim()
   };
-  if (!data.perusahaan) return alert("Nama perusahaan wajib diisi!");
-  const existing = await getDocs(query(colPelanggan, where("perusahaan", "==", data.perusahaan)));
-  if (!existing.empty) {
-    await updateDoc(existing.docs[0].ref, data);
+  if (!d.perusahaan) return alert('Isi nama perusahaan!');
+  const existingIndex = pelanggan.findIndex(x => x.perusahaan === d.perusahaan);
+  if (existingIndex > -1) {
+    pelanggan[existingIndex] = d;
   } else {
-    await addDoc(colPelanggan, data);
+    pelanggan.push(d);
   }
-  loadPelanggan();
+  db.ref('pelanggan').set(pelanggan);
+}
+function tambahPelangganBaru() {
+  document.getElementById('pelangganSelect').value = '';
+  ['perusahaan','kota','hp','pic'].forEach(id => document.getElementById(id).value = '');
 }
 
-let rekeningList = [];
-async function loadRekening() {
-  rekeningList = [];
-  const sel = document.getElementById('pilihRekening');
-  const list = document.getElementById('daftarRekening');
-  sel.innerHTML = ''; list.innerHTML = '';
-  const snap = await getDocs(colRekening);
-  snap.forEach(d => {
-    const r = d.data();
-    rekeningList.push(r);
-    sel.add(new Option(`${r.nama} - ${r.nomor}`, rekeningList.length - 1));
-    list.innerHTML += `<div style="display:flex;justify-content:space-between;padding:8px;background:#f9f9f9;margin:5px 0;border-radius:6px;">
+// Rekening
+function updateRekeningList() {
+  const s = document.getElementById('pilihRekening');
+  const l = document.getElementById('daftarRekening');
+  s.innerHTML = ''; l.innerHTML = '';
+  rekeningList.forEach((r, i) => {
+    s.add(new Option(`${r.nama} - ${r.nomor}`, i));
+    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:6px;background:white;margin:3px 0;border-radius:4px;border:1px solid #ddd;">
       <div><strong>${r.nama}</strong><br>${r.nomor}<br><small>${r.atasNama}</small></div>
-      <button style="background:#e74c3c;color:white;border:none;padding:4px 8px;border-radius:4px;" onclick="hapusRekening('${d.id}')">Hapus</button>
+      <button style="background:#e74c3c;color:white;border:none;padding:4px 8px;border-radius:4px;" onclick="hapusRekening(${i})">Hapus</button>
     </div>`;
   });
-  const saved = localStorage.getItem('kostory_rek_sel');
-  if (saved && rekeningList[saved]) sel.value = saved;
-  update();
 }
-
-window.tambahRekening = async () => {
-  const nama = prompt("Nama Bank:");
-  const nomor = prompt("Nomor Rekening:");
-  const an = prompt("Atas Nama:");
-  if (nama && nomor && an) {
-    await addDoc(colRekening, {nama, nomor, atasNama: an});
-    loadRekening();
+function tambahRekening() {
+  const a = prompt("Nama Bank:");
+  const b = prompt("Nomor Rekening:");
+  const c = prompt("Atas Nama:");
+  if (a && b && c) {
+    rekeningList.push({nama: a, nomor: b, atasNama: c});
+    db.ref('rekening').set(rekeningList);
   }
-};
-
-window.hapusRekening = async (id) => {
-  if (confirm("Hapus rekening ini?")) {
-    await deleteDoc(doc(db, "rekening", id));
-    loadRekening();
-  }
-};
-
-async function getNomorFaktur() {
-  const sekarang = new Date();
-  const y = sekarang.getFullYear().toString().slice(-2);
-  const m = String(sekarang.getMonth() + 1).padStart(2, '0');
-  const key = `${y}${m}`;
-  const counterRef = doc(db, "counters", key);
-  const snap = await getDoc(counterRef);
-  let n = (snap.exists() ? snap.data().count || 0 : 0) + 1;
-  await setDoc(counterRef, {count: n}, {merge: true});
-  return key + String(n).padStart(3, '0');
 }
-
-async function simpanKeHistory() {
-  const newEntry = {
-    no: document.getElementById('autoNo').textContent,
-    tgl: document.getElementById('tglFaktur').value,
-    perusahaan: document.getElementById('perusahaan').value.trim(),
-    pic: document.getElementById('pic').value.trim(),
-    hp: document.getElementById('hp').value.trim(),
-    data: {
-      perusahaan: document.getElementById('perusahaan').value,
-      kota: document.getElementById('kota').value,
-      hp: document.getElementById('hp').value,
-      pic: document.getElementById('pic').value,
-      tglFaktur: document.getElementById('tglFaktur').value,
-      jatuhTempo: document.getElementById('jatuhTempo').value,
-      tipe: document.getElementById('tipe').value,
-      kamar: document.getElementById('kamar').value,
-      in: document.getElementById('in').value,
-      out: document.getElementById('out').value,
-      tagihan: document.getElementById('tagihan').value,
-      bayar: document.getElementById('bayar').value,
-      tglBayar: document.getElementById('tglBayar').value,
-      rekening: document.getElementById('pilihRekening').value
-    },
-    timestamp: serverTimestamp()
-  };
-  await addDoc(colHistory, newEntry);
-  tampilkanHistory();
-}
-
-async function tampilkanHistory() {
-  const tbody = document.querySelector('#historyTable tbody');
-  tbody.innerHTML = '';
-  const duaBulanLalu = new Date();
-  duaBulanLalu.setMonth(duaBulanLalu.getMonth() - 2);
-  const q = query(colHistory, where("tgl", ">=", duaBulanLalu.toISOString().slice(0,10)), orderBy("timestamp", "desc"));
-  const snap = await getDocs(q);
-  if (snap.empty) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:40px;">Belum ada riwayat dalam 2 bulan terakhir</td></tr>';
-    return;
-  }
-  snap.forEach(d => {
-    const h = d.data();
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${h.no}</td>
-      <td>${t(h.tgl)}</td>
-      <td>${h.perusahaan}</td>
-      <td>${h.pic}</td>
-      <td>${h.hp}</td>
-      <td>
-        <button class="action-btn btn-wa" onclick="shareWA('${h.hp.replace(/[^0-9]/g,'')}', '${h.no}')">WA</button>
-        <button class="action-btn btn-delete" onclick="hapusHistory('${d.id}')">Hapus</button>
-      </td>`;
-    row.onclick = (e) => { if(e.target.tagName!=='BUTTON') loadHistoryKeForm(h.data); };
-    tbody.appendChild(row);
-  });
-}
-
-async function loadHistoryKeForm(data) {
-  if (confirm('Edit faktur ini? Data form akan diganti.')) {
-    document.getElementById('perusahaan').value = data.perusahaan || '';
-    document.getElementById('kota').value = data.kota || '';
-    document.getElementById('hp').value = data.hp || '';
-    document.getElementById('pic').value = data.pic || '';
-    document.getElementById('tglFaktur').value = data.tglFaktur || '';
-    document.getElementById('jatuhTempo').value = data.jatuhTempo || '';
-    document.getElementById('tipe').value = data.tipe || '';
-    document.getElementById('kamar').value = data.kamar || '';
-    document.getElementById('in').value = data.in || '';
-    document.getElementById('out').value = data.out || '';
-    document.getElementById('tagihan').value = data.tagihan || '';
-    document.getElementById('bayar').value = data.bayar || '0';
-    document.getElementById('tglBayar').value = data.tglBayar || '';
-    document.getElementById('pilihRekening').value = data.rekening || '0';
-    update();
+function hapusRekening(i) {
+  if (confirm('Hapus rekening ini?')) {
+    rekeningList.splice(i, 1);
+    db.ref('rekening').set(rekeningList);
   }
 }
 
-window.shareWA = (noHp, noFaktur) => {
-  const tagihan = f(document.getElementById('tagihan').value);
-  const text = encodeURIComponent(`*Kostory Invoice*\nNo. Faktur: ${noFaktur}\nTotal Tagihan: Rp${tagihan}\n\nTerima kasih!`);
-  window.open(`https://wa.me/${noHp}?text=${text}`, '_blank');
-};
-
-window.hapusHistory = async (id) => {
-  if (confirm('Hapus faktur dari riwayat?')) {
-    await deleteDoc(doc(db, "history", id));
-    tampilkanHistory();
-  }
-};
-
-const f = n => new Intl.NumberFormat('id-ID').format(n);
-const t = d => new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-
-window.update = async () => {
-  const no = await getNomorFaktur();
-  document.getElementById('autoNo').textContent = document.getElementById('p-no').textContent = no;
+// Update preview
+function update() {
+  getNomorFaktur();
   const tag = parseInt(document.getElementById('tagihan').value) || 0;
   const bay = parseInt(document.getElementById('bayar').value) || 0;
   const sisa = tag - bay;
-  document.getElementById('p-perusahaan').textContent = (document.getElementById('perusahaan').value || "").toUpperCase();
+
+  document.getElementById('p-perusahaan').textContent = (document.getElementById('perusahaan').value||"").toUpperCase();
   document.getElementById('p-kota').textContent = document.getElementById('kota').value;
   document.getElementById('p-hp').textContent = document.getElementById('hp').value;
   document.getElementById('p-pic').textContent = document.getElementById('pic').value;
@@ -428,35 +361,56 @@ window.update = async () => {
   document.getElementById('p-periode').textContent = t(document.getElementById('in').value) + ' SD ' + t(document.getElementById('out').value);
   document.getElementById('p-tgl').textContent = t(document.getElementById('tglFaktur').value);
   document.getElementById('p-tempo').textContent = t(document.getElementById('jatuhTempo').value);
-  ['p-harga','p-subtotal','p-total2','p-total'].forEach(id => document.getElementById(id).textContent = f(tag));
+
+  ['p-harga','p-jumlah','p-subtotal','p-total2'].forEach(id => document.getElementById(id).textContent = f(tag));
   document.getElementById('p-bayar').textContent = f(bay);
   document.getElementById('p-sisa').textContent = f(sisa);
-  document.getElementById('p-infoBayar').textContent = document.getElementById('tglBayar').value ? "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) : "(Belum ada pembayaran)";
+  document.getElementById('p-infoBayar').textContent = document.getElementById('tglBayar').value ? 
+    "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) : "(Belum ada pembayaran)";
+
   const ri = document.getElementById('pilihRekening').value;
   if (rekeningList[ri]) {
     const r = rekeningList[ri];
     document.getElementById('p-rekening').innerHTML = `${r.nama}<br>${r.nomor}<br>${r.atasNama}`;
-    localStorage.setItem('kostory_rek_sel', ri);
   }
-};
+}
 
-// FUNGSI CETAK YANG DIPERBAIKI
-window.cetakFaktur = async () => {
-  await simpanPelanggan();
-  await update();           // pastikan nomor faktur baru muncul
-  await simpanKeHistory();
-  window.print();
-};
+// Backup (download semua data)
+function downloadBackup() {
+  Promise.all([
+    db.ref('pelanggan').once('value'),
+    db.ref('rekening').once('value'),
+    db.ref('counters').once('value')
+  ]).then(([p, r, c]) => {
+    const data = {pelanggan: p.val() || [], rekeningList: r.val() || [], counters: c.val() || {}};
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `kostory_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    alert('Backup berhasil di-download!');
+  });
+}
 
-// INIT
-loadPelanggan();
-loadRekening();
-tampilkanHistory();
+// Export Excel (tetap sama seperti sebelumnya)
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
+    ["No Faktur", document.getElementById('p-no').textContent],
+    ["Tanggal", document.getElementById('p-tgl').textContent],
+    ["Pelanggan", document.getElementById('p-perusahaan').textContent],
+    ["Total", "Rp" + f(parseInt(document.getElementById('tagihan').value))],
+    ["Terbayar", "Rp" + f(parseInt(document.getElementById('bayar').value))]
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, "Faktur");
+  XLSX.writeFile(wb, `Faktur_${document.getElementById('p-no').textContent}.xlsx`);
+}
+
+// Event listener
 document.querySelectorAll('input,select').forEach(el => {
   el.addEventListener('input', update);
   el.addEventListener('change', update);
 });
-update();
 </script>
 </body>
 </html>
