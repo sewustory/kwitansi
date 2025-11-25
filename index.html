@@ -2,9 +2,11 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Kostory Invoice v8.1 — FINAL & AMAN SELAMANYA</title>
+<title>Kostory Invoice v8.1 — ONLINE (Firebase Fixed)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -22,11 +24,14 @@
   button{padding:11px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:8px;}
   .btn-primary{background:#e67e22;color:white;width:100%;font-size:16px;}
   .btn-success{background:#27ae60;color:white;}
+  .btn-info{background:#3498db;color:white;font-size:13px;}
+  .btn-warning{background:#f39c12;color:white;font-size:13px;}
   .btn-small{padding:7px 12px;font-size:13px;margin-left:8px;}
   .auto-no{font-size:18px;font-weight:bold;color:#e67e22;background:#fff8e1;padding:12px;border-radius:8px;text-align:center;margin:15px 0;}
+  .backup-box{margin:20px 0;padding:15px;background:#e8f5e9;border-radius:8px;border:2px solid #27ae60;font-size:14px;}
   .rekening-list{max-height:180px;overflow-y:auto;margin-top:10px;padding:8px;background:#f9f9f9;border-radius:8px;}
 
-  /* INVOICE STYLE — SAMA PERSIS KAYAK DULU */
+  /* INVOICE — 100% MIRIP FOTO ASLI */
   .invoice {max-width:800px;margin:auto;font-size:14.5px;line-height:1.75;color:#000;}
   .header {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;}
   .logo{position:relative;}
@@ -39,6 +44,7 @@
   th{background:#f8f8f8;padding:14px 10px;font-weight:bold;border-bottom:3px double #000;}
   td{padding:14px 10px;border-bottom:1px solid #ddd;vertical-align:top;}
   .text-right{text-align:right;}
+  .text-center{text-align:center;}
   .total-section{float:right;width:380px;margin-top:40px;font-size:15px;}
   .total-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd;}
   .big-total{background:#f5f5f5;padding:16px;text-align:center;font-size:22px;font-weight:bold;border:2px solid #000;border-radius:8px;margin-top:15px;}
@@ -46,13 +52,14 @@
   .rekening{white-space:pre-line;line-height:1.8;font-size:14.5px;}
   .notes{margin-top:30px;font-size:13.5px;line-height:1.85;}
 
+  /* Login overlay */
   #loginOverlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:9999;}
   .loginBox {background:white;padding:40px;border-radius:16px;width:340px;text-align:center;}
   .loginBox h2 {margin-top:0;color:#e67e22;}
 
   @media print {
     body{background:white;padding:0;}
-    .form,#loginOverlay{display:none!important;}
+    .form,.backup-box,#loginOverlay{display:none!important;}
     .preview-wrapper{padding:0;max-height:none;overflow:visible;}
     .preview{padding:40px 60px;box-shadow:none;}
   }
@@ -60,18 +67,20 @@
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginOverlay">
   <div class="loginBox">
     <h2>Kostory Invoice v8.1</h2>
     <p>Masuk dengan akun admin</p>
-    <input type="text" id="username" placeholder="Username" style="margin:10px 0;width:100%;padding:10px;"><br>
-    <input type="password" id="password" placeholder="Password" style="margin:10px 0;width:100%;padding:10px;"><br>
+    <input type="text" id="username" placeholder="Username" style="margin:10px 0;"><br>
+    <input type="password" id="password" placeholder="Password" style="margin:10px 0;"><br>
     <button class="btn-primary" onclick="login()">Login</button>
-    <p style="margin-top:15px;font-size:12px;color:#777;">admin / ramenuno20</p>
+    <p style="margin-top:15px;font-size:12px;color:#777;">Hint: admin / ramenuno20</p>
   </div>
 </div>
 
 <div class="container" id="mainApp" style="display:none;">
+  <!-- FORM -->
   <div class="form">
     <h1>Kostory Invoice v8.1</h1>
 
@@ -79,18 +88,28 @@
     <select id="pelangganSelect" onchange="pilihPelanggan()"></select>
     <button class="btn-small" onclick="tambahPelangganBaru()">+ Baru</button>
 
-    <label>Perusahaan</label><input type="text" id="perusahaan">
-    <label>Kota</label><input type="text" id="kota">
-    <label>No. HP</label><input type="text" id="hp">
-    <label>PIC</label><input type="text" id="pic">
+    <label>Perusahaan</label>
+    <input type="text" id="perusahaan">
+
+    <label>Kota</label>
+    <input type="text" id="kota">
+
+    <label>No. HP</label>
+    <input type="text" id="hp">
+
+    <label>PIC</label>
+    <input type="text" id="pic">
 
     <button class="btn-success" onclick="simpanPelangganSaja()" style="margin-top:12px;">Save/Update Pelanggan</button>
 
     <hr style="margin:25px 0;border:1px dashed #ddd;">
+
     <div class="auto-no">No. Faktur: <span id="autoNo">2511001</span></div>
 
-    <label>Tanggal Faktur</label><input type="date" id="tglFaktur" value="2025-11-28">
-    <label>Jatuh Tempo</label><input type="date" id="jatuhTempo" value="2025-12-30">
+    <label>Tanggal Faktur</label>
+    <input type="date" id="tglFaktur" value="2025-11-28">
+    <label>Jatuh Tempo</label>
+    <input type="date" id="jatuhTempo" value="2025-12-30">
 
     <label>Tipe Kamar</label>
     <select id="tipe">
@@ -102,7 +121,9 @@
       <option>Twin Bed Xtra Service</option>
     </select>
 
-    <label>Nama Kamar</label><input type="text" id="kamar" value="MEKAR 208">
+    <label>Nama Kamar</label>
+    <input type="text" id="kamar" value="MEKAR 208">
+
     <label>Check-in</label><input type="date" id="in" value="2025-11-01">
     <label>Check-out</label><input type="date" id="out" value="2025-12-01">
 
@@ -118,10 +139,16 @@
     <button class="btn-small btn-success" onclick="tambahRekening()">+ Tambah</button>
     <div class="rekening-list" id="daftarRekening"></div>
 
+    <div class="backup-box">
+      <strong>Backup Data</strong><br><br>
+      <button class="btn-info" onclick="downloadBackup()">Download Backup</button>
+    </div>
+
     <button class="btn-primary" onclick="simpanPelanggan();window.print()">Cetak Faktur</button>
     <button class="btn-success" onclick="exportToExcel()">Export Excel</button>
   </div>
 
+  <!-- PREVIEW -->
   <div class="preview-wrapper">
     <div class="preview">
       <div class="invoice">
@@ -189,6 +216,7 @@
 </div>
 
 <script>
+// ================== FIREBASE CONFIG ==================
 const firebaseConfig = {
   apiKey: "AIzaSyDaFM8dTqOn6c875Xe3VIfYkz4O1ioOLxA",
   authDomain: "nota-1596b.firebaseapp.com",
@@ -200,49 +228,77 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let pelanggan = {}, rekening = {};
-let nomorFakturSekarang = "2511001";
+// ================== GLOBAL VARIABLES ==================
+let pelanggan = {}; // Object instead of array for Firebase safety
+let rekeningList = {}; // Object instead of array
+let nomorFakturSudahDibuat = false;
 
+// Formatting functions
 const f = n => new Intl.NumberFormat('id-ID').format(n);
 const t = d => d ? new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '';
 
+// ================== LOGIN ==================
 function login() {
-  if (document.getElementById('username').value === 'admin' && document.getElementById('password').value === 'ramenuno20') {
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value;
+  if (user === 'admin' && pass === 'ramenuno20') {
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
     initApp();
-  } else alert('Username/password salah!');
+  } else {
+    alert('Username atau password salah!');
+  }
 }
 
-function initApp() {
-  db.ref('pelanggan').on('value', s => { pelanggan = s.val() || {}; loadPelanggan(); update(); });
-  db.ref('rekening').on('value', s => { rekening = s.val() || {}; updateRekeningList(); update(); });
-  getNomorFaktur();
-}
-
+// ================== NOMOR FAKTUR ==================
 function getNomorFaktur() {
+  if (nomorFakturSudahDibuat) return;
   const n = new Date();
   const y = n.getFullYear().toString().slice(-2);
   const m = String(n.getMonth() + 1).padStart(2, '0');
   const key = `counter_${y}${m}`;
-  db.ref('counters/' + key).transaction(c => (c || 0) + 1).then(r => {
-    const counter = r.snapshot.val();
-    nomorFakturSekarang = y + m + String(counter).padStart(3, '0');
-    document.getElementById('autoNo').textContent = nomorFakturSekarang;
-    document.getElementById('p-no').textContent = nomorFakturSekarang;
+
+  db.ref('counters/' + key).transaction(current => (current || 0) + 1).then(result => {
+    const counter = result.snapshot.val();
+    const nomor = y + m + String(counter).padStart(3, '0');
+    nomorFakturSekarang = nomor;
+    nomorFakturSudahDibuat = true;
+    document.getElementById('autoNo').textContent = nomor;
+    document.getElementById('p-no').textContent = nomor;
   });
 }
 
+// ================== INIT APP ==================
+function initApp() {
+  // Load pelanggan as object
+  db.ref('pelanggan').on('value', snap => {
+    pelanggan = snap.val() || {};
+    loadPelanggan();
+    update();
+  });
+  // Load rekening as object
+  db.ref('rekening').on('value', snap => {
+    rekeningList = snap.val() || {};
+    updateRekeningList();
+    update();
+  });
+  getNomorFaktur();
+}
+
+// ================== PELANGGAN FUNCTIONS ==================
 function loadPelanggan() {
   const s = document.getElementById('pelangganSelect');
   s.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
-  Object.keys(pelanggan).forEach(k => s.add(new Option(pelanggan[k].perusahaan, k)));
+  Object.keys(pelanggan).forEach(key => {
+    const p = pelanggan[key];
+    s.add(new Option(p.perusahaan, key));
+  });
 }
 
 function pilihPelanggan() {
-  const k = document.getElementById('pelangganSelect').value;
-  if (!k) return;
-  const p = pelanggan[k];
+  const key = document.getElementById('pelangganSelect').value;
+  if (!key) return;
+  const p = pelanggan[key];
   document.getElementById('perusahaan').value = p.perusahaan || '';
   document.getElementById('kota').value = p.kota || '';
   document.getElementById('hp').value = p.hp || '';
@@ -256,51 +312,58 @@ function tambahPelangganBaru() {
 }
 
 function simpanPelangganSaja() {
-  const perusahaan = document.getElementById('perusahaan').value.trim();
-  if (!perusahaan) return alert('Isi perusahaan dulu!');
-  const key = Date.now().toString();
-  pelanggan[key] = {
-    perusahaan: perusahaan,
+  const d = {
+    perusahaan: document.getElementById('perusahaan').value.trim(),
     kota: document.getElementById('kota').value.trim(),
     hp: document.getElementById('hp').value.trim(),
     pic: document.getElementById('pic').value.trim()
   };
+  if (!d.perusahaan) return alert('Isi nama perusahaan!');
+  const key = Date.now().toString(); // Unique key
+  pelanggan[key] = d;
   db.ref('pelanggan').set(pelanggan);
-  alert('Pelanggan tersimpan!');
+  alert('Pelanggan disimpan!');
   loadPelanggan();
 }
-function simpanPelanggan() { simpanPelangganSaja(); }
 
+function simpanPelanggan() {
+  simpanPelangganSaja();
+}
+
+// ================== REKENING FUNCTIONS ==================
 function updateRekeningList() {
   const s = document.getElementById('pilihRekening');
   const l = document.getElementById('daftarRekening');
   s.innerHTML = ''; l.innerHTML = '';
-  Object.keys(rekening).forEach(k => {
-    const r = rekening[k];
-    s.add(new Option(`${r.nama} - ${r.nomor}`, k));
+  Object.keys(rekeningList).forEach(key => {
+    const r = rekeningList[key];
+    s.add(new Option(`${r.nama} - ${r.nomor}`, key));
     l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:6px;background:white;margin:3px 0;border-radius:4px;border:1px solid #ddd;">
       <div><strong>${r.nama}</strong><br>${r.nomor}<br><small>${r.atasNama}</small></div>
-      <button style="background:#e74c3c;color:white;border:none;padding:4px 8px;border-radius:4px;" onclick="hapusRekening('${k}')">Hapus</button>
+      <button style="background:#e74c3c;color:white;border:none;padding:4px 8px;border-radius:4px;" onclick="hapusRekening('${key}')">Hapus</button>
     </div>`;
   });
 }
 
 function tambahRekening() {
-  const a = prompt("Nama Bank:"), b = prompt("Nomor Rekening:"), c = prompt("Atas Nama:");
+  const a = prompt("Nama Bank:");
+  const b = prompt("Nomor Rekening:");
+  const c = prompt("Atas Nama:");
   if (a && b && c) {
     const key = Date.now().toString();
-    rekening[key] = {nama: a.trim(), nomor: b.trim(), atasNama: c.trim()};
-    db.ref('rekening').set(rekening);
+    rekeningList[key] = {nama: a, nomor: b, atasNama: c};
+    db.ref('rekening').set(rekeningList);
   }
 }
 
-function hapusRekening(k) {
+function hapusRekening(key) {
   if (confirm('Hapus rekening ini?')) {
-    delete rekening[k];
-    db.ref('rekening').set(rekening);
+    delete rekeningList[key];
+    db.ref('rekening').set(rekeningList);
   }
 }
 
+// ================== UPDATE PREVIEW ==================
 function update() {
   const tag = parseInt(document.getElementById('tagihan').value) || 0;
   const bay = parseInt(document.getElementById('bayar').value) || 0;
@@ -323,12 +386,34 @@ function update() {
     "Tanggal " + t(document.getElementById('tglBayar').value) + " - Rp" + f(bay) : "(Belum ada pembayaran)";
 
   const ri = document.getElementById('pilihRekening').value;
-  if (ri && rekening[ri]) {
-    const r = rekening[ri];
+  if (ri && rekeningList[ri]) {
+    const r = rekeningList[ri];
     document.getElementById('p-rekening').innerHTML = `${r.nama}<br>${r.nomor}<br>${r.atasNama}`;
   }
 }
 
+// ================== BACKUP ==================
+function downloadBackup() {
+  Promise.all([
+    db.ref('pelanggan').once('value'),
+    db.ref('rekening').once('value'),
+    db.ref('counters').once('value')
+  ]).then(([p, r, c]) => {
+    const data = {
+      pelanggan: p.val() || {},
+      rekeningList: r.val() || {},
+      counters: c.val() || {}
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `kostory_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    alert('Backup berhasil di-download!');
+  });
+}
+
+// ================== EXPORT EXCEL ==================
 function exportToExcel() {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([
@@ -342,6 +427,7 @@ function exportToExcel() {
   XLSX.writeFile(wb, `Faktur_${document.getElementById('p-no').textContent}.xlsx`);
 }
 
+// ================== EVENT LISTENERS ==================
 document.querySelectorAll('input,select').forEach(el => {
   el.addEventListener('input', update);
   el.addEventListener('change', update);
