@@ -1,4 +1,4 @@
-// firebase-config.js — HARUS ADA DI ROOT REPO KAMU
+// firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, get, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -13,6 +13,5 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-export { db, ref, set, get, push, remove, onValue };
+export const db = getDatabase(app);
+export { ref, set, get, push, remove, onValue };
