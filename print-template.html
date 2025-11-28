@@ -2,38 +2,47 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Faktur {{noFaktur}}</title>
+  <title>Faktur Kostory</title>
   <style>
-    @page { margin: 0.5cm; }
-    body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 30px 50px; background: white; color: #000; }
+    @page { margin: 1cm; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; font-size: 13px; line-height: 1.5; color: #000; }
+    .container { max-width: 900px; margin: auto; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-    .logo img { width: 120px; }
-    .logo-text { font-size: 48px; font-weight: bold; color: #000; margin-left: -10px; }
+    .logo { width: 100px; }
+    .logo img { width: 100%; border-radius: 50%; }
+    .title { font-size: 48px; font-weight: bold; margin-top: 10px; }
     .tagline { font-size: 11px; color: #666; margin-top: -5px; }
-    .contact { text-align: right; font-size: 11px; line-height: 1.4; }
-    .bill-box { border: 1px solid #ddd; padding: 15px; background: #f9f9f9; margin: 20px 0; font-size: 13px; }
-    .bill-box strong { font-size: 14px; }
-    .info-right { text-align: right; font-size: 13px; margin-top: -50px; }
-    table { width: 100%; border-collapse: collapse; margin: 30px 0; font-size: 13px; }
-    th, td { border: 1px solid #000; padding: 10px; text-align: left; }
-    th { background: #333; color: white; }
+    .contact { text-align: right; font-size: 12px; line-height: 1.6; }
+    .billto { background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 25px 0; font-size: 14px; }
+    .billto strong { font-size: 16px; }
+    .info { float: right; font-size: 13px; margin-top: -50px; }
+    table { width: 100%; border-collapse: collapse; margin: 40px 0; font-size: 13px; }
+    th { background: #333; color: white; padding: 12px; text-align: left; }
+    td { padding: 12px; border-bottom: 1px solid #ddd; }
     .text-center { text-align: center; }
     .text-right { text-align: right; }
-    .total-section { font-size: 14px; line-height: 2; margin-top: 20px; }
-    .highlight-box { border: 2px solid #000; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; margin: 30px 0; width: 400px; margin-left: auto; }
-    .footer { margin-top: 50px; font-size: 11px; line-height: 1.6; }
-    pre { font-family: Arial; white-space: pre-wrap; font-size: 12px; }
-    .no-print { display: none; }
+    .total { font-weight: bold; font-size: 14px; }
+    .highlight {
+      border: 3px solid #000;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 40px auto;
+    }
+    .footer { margin-top: 60px; font-size: 12px; line-height: 1.8; }
+    pre { background: #f9f9f9; padding: 15px; border-radius: 6px; font-size: 13px; white-space: pre-wrap; }
+    @media print { body { padding: 10px; } .highlight { border: 3px solid #000; } }
   </style>
 </head>
 <body>
-
+<div class="container">
   <div class="header">
     <div>
-      <div class="logo">
-        <img src="assets/logo-kostory.png" alt="Kostory">
-      </div>
-      <div class="logo-text">Kostory</div>
+      <div class="logo"><img src="assets/logo-kostory.png" alt="Kostory"></div>
+      <div class="title">Kostory</div>
       <div class="tagline">WHERE STORIES FIND HOME</div>
     </div>
     <div class="contact">
@@ -46,19 +55,20 @@
     </div>
   </div>
 
-  <div class="bill-box">
+  <div class="billto">
     <strong>DITAGIH KEPADA</strong><br>
-    <span id="perusahaan"></span><br>
+    <span id="perusahaan"></span>
     <span id="nama"></span><br>
     <span id="alamat"></span><br>
     <span id="hp"></span> <span id="pic"></span>
   </div>
 
-  <div class="info-right">
+  <div class="info">
     Faktur # <span id="noFaktur"></span><br>
     Tanggal <span id="tglFaktur"></span><br>
     Jatuh Tempo <span id="jatuhTempo"></span>
   </div>
+  <div style="clear:both;"></div>
 
   <table>
     <thead>
@@ -73,7 +83,7 @@
       <tr>
         <td>
           Biaya Kost (<span id="tipeKamar"></span>)<br>
-          <span id="namaKamar"></span><br>
+          <strong><span id="namaKamar"></span></strong><br>
           <span id="periode"></span>
         </td>
         <td class="text-center">1</td>
@@ -83,16 +93,15 @@
     </tbody>
   </table>
 
-  <div style="float: right; width: 300px;" class="total-section">
-    <div>Subtotal <span id="subtotal" style="float:right"></span></div>
-    <div><strong>Total</strong> <span id="total" style="float:right"></span></div>
-    <div>Pembayaran <span id="pembayaran" style="float:right"></span></div>
+  <div style="text-align:right; margin-top:20px;">
+    <div class="total">Subtotal <span id="subtotal"></span></div>
+    <div class="total">Total <span id="total"></span></div>
+    <div>Pembayaran <span id="pembayaran">Rp0</span></div>
   </div>
-  <div style="clear:both;"></div>
 
-  <div class="highlight-box">
+  <div class="highlight">
     Jumlah yang Harus Dibayar<br>
-    <span id="harusDibayar"></span>
+    <span id="harusDibayar" style="font-size:32px;">Rp1.950.000</span>
   </div>
 
   <div class="footer">
@@ -105,48 +114,42 @@
     Biaya sewa kost tidak bisa direfund sebagian/seluruhnya apabila ada pembatalan saat masa sewa (early Checkout).<br><br>
     Terimakasih.
   </div>
+</div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const data = JSON.parse(decodeURIComponent(urlParams.get('data')));
+<script>
+  const params = new URLSearchParams(location.search);
+  const data = JSON.parse(decodeURIComponent(params.get('data')));
 
-    const rupiah = (n) => "Rp" + parseInt(n).toLocaleString('id-ID') + ",00";
+  const rupiah = n => "Rp" + parseInt(n).toLocaleString('id-ID') + ",00";
+  const tgl = d => new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
 
-    document.getElementById("noFaktur").textContent = data.noFaktur;
-    document.getElementById("tglFaktur").textContent = new Date(data.tglFaktur).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-    document.getElementById("jatuhTempo").textContent = new Date(data.jatuhTempo).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-    document.getElementById("perusahaan").textContent = data.perusahaan.toUpperCase() || '';
-    document.getElementById("nama").textContent = data.nama.toUpperCase();
-    document.getElementById("alamat").textContent = data.alamat;
-    document.getElementById("hp").textContent = data.hp;
-    document.getElementById("pic").textContent = data.perusahaan ? "– MR GUO ZHIHUI – MR BADANG SATRIO" : "";
-    document.getElementById("tipeKamar").textContent = data.tipeKamar;
-    document.getElementById("namaKamar").textContent = data.namaKamar;
-    
-    const inDate = new Date(data.checkIn).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-    const outDate = new Date(data.checkOut).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-    document.getElementById("periode").textContent = inDate + " SD " + outDate;
+  document.getElementById("noFaktur").textContent = data.noFaktur;
+  document.getElementById("tglFaktur").textContent = tgl(data.tglFaktur);
+  document.getElementById("jatuhTempo").textContent = tgl(data.jatuhTempo);
+  document.getElementById("perusahaan").innerHTML = data.perusahaan ? data.perusahaan.toUpperCase() + "<br>" : "";
+  document.getElementById("nama").textContent = data.nama.toUpperCase();
+  document.getElementById("alamat").textContent = data.alamat;
+  document.getElementById("hp").textContent = data.hp;
+  document.getElementById("pic").textContent = data.perusahaan ? "MR GUO ZHIHUI – MR BADANG SATRIO" : "";
+  document.getElementById("tipeKamar").textContent = data.tipeKamar;
+  document.getElementById("namaKamar").textContent = data.namaKamar;
+  document.getElementById("periode").textContent = tgl(data.checkIn) + " SD " + tgl(data.checkOut);
 
-    const total = data.totalTagihan;
-    const bayar = data.jumlahDibayar || 0;
-    const sisa = total - bayar;
+  const total = data.totalTagihan;
+  const bayar = data.jumlahDibayar || 0;
+  const sisa = total - bayar;
 
-    document.getElementById("harga").textContent = rupiah(total);
-    document.getElementById("jumlah").textContent = rupiah(total);
-    document.getElementById("subtotal").textContent = rupiah(total);
-    document.getElementById("total").textContent = rupiah(total);
-    document.getElementById("pembayaran").textContent = rupiah(bayar);
-    document.getElementById("harusDibayar").textContent = rupiah(sisa);
+  document.getElementById("harga").textContent = rupiah(total);
+  document.getElementById("jumlah").textContent = rupiah(total);
+  document.getElementById("subtotal").textContent = rupiah(total);
+  document.getElementById("total").textContent = rupiah(total);
+  document.getElementById("pembayaran").textContent = rupiah(bayar);
+  document.getElementById("harusDibayar").textContent = rupiah(sisa);
+  document.getElementById("rekBank").textContent = data.rekText || "BANK MANDIRI\n119-000-6262-842\nY TEKAT HERI SUSANTO, ST";
 
-    if (bayar > 0) {
-      document.getElementById("statusBayar").textContent = "";
-    }
+  if (bayar > 0) document.getElementById("statusBayar").textContent = "";
 
-    // Rekening
-    document.getElementById("rekBank").textContent = data.rekText || `BANK MANDIRI\n119-000-6262-842\nY TEKAT HERI SUSANTO, ST`;
-
-    // Auto print
-    window.onload = () => setTimeout(() => window.print(), 800);
-  </script>
+  setTimeout(() => window.print(), 1000);
+</script>
 </body>
 </html>
