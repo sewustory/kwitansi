@@ -2,52 +2,134 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Faktur Kostory</title>
+  <title>Faktur {{noFaktur}}</title>
   <style>
-    @page { margin: 1cm; }
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; font-size: 13px; line-height: 1.5; color: #000; }
-    .container { max-width: 900px; margin: auto; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-    .logo { width: 100px; }
-    .logo img { width: 100%; border-radius: 50%; }
-    .title { font-size: 48px; font-weight: bold; margin-top: 10px; }
-    .tagline { font-size: 11px; color: #666; margin-top: -5px; }
-    .contact { text-align: right; font-size: 12px; line-height: 1.6; }
-    .billto { background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 25px 0; font-size: 14px; }
-    .billto strong { font-size: 16px; }
-    .info { float: right; font-size: 13px; margin-top: -50px; }
-    table { width: 100%; border-collapse: collapse; margin: 40px 0; font-size: 13px; }
-    th { background: #333; color: white; padding: 12px; text-align: left; }
-    td { padding: 12px; border-bottom: 1px solid #ddd; }
+    @page { margin: 0.7cm; }
+    body { 
+      font-family: Arial, Helvetica, sans-serif; 
+      margin: 0; 
+      padding: 40px 50px; 
+      background: white; 
+      color: #000; 
+      font-size: 13px;
+    }
+    .header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      margin-bottom: 30px; 
+      border-bottom: 2px solid #000; 
+      padding-bottom: 20px;
+    }
+    .logo img { width: 130px; }
+    .logo-text { 
+      font-size: 52px; 
+      font-weight: bold; 
+      color: #000; 
+      margin-left: -10px; 
+      margin-top: -10px;
+    }
+    .tagline { 
+      font-size: 11px; 
+      color: #555; 
+      margin-top: -8px; 
+      letter-spacing: 2px;
+    }
+    .contact { 
+      text-align: right; 
+      font-size: 11px; 
+      line-height: 1.5; 
+      color: #444;
+    }
+
+    /* Box info faktur di kanan atas - rapi */
+    .invoice-info {
+      float: right;
+      width: 280px;
+      border: 2px solid #000;
+      padding: 12px 15px;
+      margin-top: -10px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      background: #fff;
+    }
+    .invoice-info strong { font-size: 14px; }
+
+    .bill-box { 
+      clear: both;
+      border: 1px solid #000; 
+      padding: 15px; 
+      background: #f9f9f9; 
+      margin: 25px 0; 
+    }
+    .bill-box strong { font-size: 15px; }
+
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 35px 0; 
+    }
+    th, td { 
+      border: 1px solid #000; 
+      padding: 10px 12px; 
+      text-align: left; 
+    }
+    th { 
+      background: #222; 
+      color: white; 
+      font-weight: normal;
+    }
     .text-center { text-align: center; }
     .text-right { text-align: right; }
-    .total { font-weight: bold; font-size: 14px; }
-    .highlight {
-      border: 3px solid #000;
-      padding: 20px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: 40px auto;
+
+    .total-section { 
+      float: right; 
+      width: 350px; 
+      margin-top: 20px; 
+      font-size: 14px; 
+      line-height: 2.2;
     }
-    .footer { margin-top: 60px; font-size: 12px; line-height: 1.8; }
-    pre { background: #f9f9f9; padding: 15px; border-radius: 6px; font-size: 13px; white-space: pre-wrap; }
-    @media print { body { padding: 10px; } .highlight { border: 3px solid #000; } }
+    .total-section strong { font-size: 16px; }
+
+    .highlight-box { 
+      clear: both;
+      border: 3px solid #000; 
+      padding: 18px; 
+      text-align: center; 
+      font-size: 24px; 
+      font-weight: bold; 
+      max-width: 450px; 
+      margin: 40px auto 30px auto; 
+      background: #fff;
+    }
+
+    .footer { 
+      margin-top: 60px; 
+      font-size: 11px; 
+      line-height: 1.7; 
+      color: #333;
+    }
+    pre { 
+      font-family: Arial, sans-serif; 
+      white-space: pre-wrap; 
+      margin: 10px 0; 
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-<div class="container">
+
   <div class="header">
     <div>
-      <div class="logo"><img src="assets/logo-kostory.png" alt="Kostory"></div>
-      <div class="title">Kostory</div>
+      <div class="logo">
+        <img src="assets/logo-kostory.png" alt="Kostory">
+      </div>
+      <div class="logo-text">Kostory</div>
       <div class="tagline">WHERE STORIES FIND HOME</div>
     </div>
     <div class="contact">
       Kostory Palembang<br>
-      Jl. H Sanusi Lr.Mekar 1 No.888<br>
+      Jl. H Sanusi Lr. Mekar 1 No.888<br>
       Sukabangun - Sukarami<br>
       Kota Palembang<br>
       0813-8321-0009<br>
@@ -55,35 +137,36 @@
     </div>
   </div>
 
-  <div class="billto">
-    <strong>DITAGIH KEPADA</strong><br>
-    <span id="perusahaan"></span>
-    <span id="nama"></span><br>
-    <span id="alamat"></span><br>
-    <span id="hp"></span> <span id="pic"></span>
-  </div>
-
-  <div class="info">
-    Faktur # <span id="noFaktur"></span><br>
-    Tanggal <span id="tglFaktur"></span><br>
-    Jatuh Tempo <span id="jatuhTempo"></span>
+  <!-- Info Faktur yang rapi di kanan atas -->
+  <div class="invoice-info">
+    <div><strong>Faktur #</strong> <span id="noFaktur"></span></div>
+    <div><strong>Tanggal Faktur</strong> <span id="tglFaktur"></span></div>
+    <div><strong>Jatuh Tempo</strong> <span id="jatuhTempo"></span></div>
   </div>
   <div style="clear:both;"></div>
+
+  <div class="bill-box">
+    <strong>DITAGIH KEPADA</strong><br>
+    <span id="perusahaan"></span><br>
+    <span id="nama"></span><br>
+    <span id="alamat"></span><br>
+    <span id="hp"></span>
+  </div>
 
   <table>
     <thead>
       <tr>
-        <th>Keterangan</th>
-        <th class="text-center">Vol</th>
-        <th class="text-right">Harga</th>
-        <th class="text-right">Jumlah</th>
+        <th width="45%">Keterangan</th>
+        <th class="text-center" width="10%">Vol</th>
+        <th class="text-right" width="20%">Harga</th>
+        <th class="text-right" width="25%">Jumlah</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>
           Biaya Kost (<span id="tipeKamar"></span>)<br>
-          <strong><span id="namaKamar"></span></strong><br>
+          <span id="namaKamar"></span><br>
           <span id="periode"></span>
         </td>
         <td class="text-center">1</td>
@@ -93,63 +176,71 @@
     </tbody>
   </table>
 
-  <div style="text-align:right; margin-top:20px;">
-    <div class="total">Subtotal <span id="subtotal"></span></div>
-    <div class="total">Total <span id="total"></span></div>
-    <div>Pembayaran <span id="pembayaran">Rp0</span></div>
+  <div class="total-section">
+    <div>Subtotal <span id="subtotal" style="float:right; margin-left: 30px;"></span></div>
+    <div><strong>Total Tagihan</strong> <span id="total" style="float:right; margin-left: 30px;"></span></div>
+    <div>Pembayaran <span id="pembayaran" style="float:right; margin-left: 30px;"></span></div>
   </div>
+  <div style="clear:both;"></div>
 
-  <div class="highlight">
+  <div class="highlight-box">
     Jumlah yang Harus Dibayar<br>
-    <span id="harusDibayar" style="font-size:32px;">Rp1.950.000</span>
+    <span id="harusDibayar"></span>
   </div>
 
   <div class="footer">
-    <strong>Rek. Pembayaran :</strong><br>
+    <strong>Rekening Pembayaran :</strong><br>
     <pre id="rekBank"></pre>
     <span id="statusBayar">(Belum ada pembayaran)</span>
     <br><br>
-    Harap melunasi pembayaran perpanjangan 3 hari sebelum masa sewa habis.<br>
-    Segera info minimal 7 hari sebelum masa sewa habis jika tidak diperpanjang.<br>
-    Biaya sewa kost tidak bisa direfund sebagian/seluruhnya apabila ada pembatalan saat masa sewa (early Checkout).<br><br>
-    Terimakasih.
+    Harap melunasi pembayaran perpanjangan <strong>3 hari sebelum</strong> masa sewa berakhir.<br>
+    Mohon konfirmasi minimal <strong>7 hari sebelum</strong> masa sewa habis jika tidak diperpanjang.<br>
+    Biaya sewa tidak dapat direfund jika terjadi checkout sebelum masa sewa berakhir.<br><br>
+    Terima kasih atas kepercayaannya.
   </div>
-</div>
 
-<script>
-  const params = new URLSearchParams(location.search);
-  const data = JSON.parse(decodeURIComponent(params.get('data')));
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const data = JSON.parse(decodeURIComponent(urlParams.get('data')));
 
-  const rupiah = n => "Rp" + parseInt(n).toLocaleString('id-ID') + ",00";
-  const tgl = d => new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+    const rupiah = (n) => "Rp" + parseInt(n).toLocaleString('id-ID') + ",00";
 
-  document.getElementById("noFaktur").textContent = data.noFaktur;
-  document.getElementById("tglFaktur").textContent = tgl(data.tglFaktur);
-  document.getElementById("jatuhTempo").textContent = tgl(data.jatuhTempo);
-  document.getElementById("perusahaan").innerHTML = data.perusahaan ? data.perusahaan.toUpperCase() + "<br>" : "";
-  document.getElementById("nama").textContent = data.nama.toUpperCase();
-  document.getElementById("alamat").textContent = data.alamat;
-  document.getElementById("hp").textContent = data.hp;
-  document.getElementById("pic").textContent = data.perusahaan ? "MR GUO ZHIHUI – MR BADANG SATRIO" : "";
-  document.getElementById("tipeKamar").textContent = data.tipeKamar;
-  document.getElementById("namaKamar").textContent = data.namaKamar;
-  document.getElementById("periode").textContent = tgl(data.checkIn) + " SD " + tgl(data.checkOut);
+    // Isi data
+    document.getElementById("noFaktur").textContent = data.noFaktur;
+    document.getElementById("tglFaktur").textContent = new Date(data.tglFaktur).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+    document.getElementById("jatuhTempo").textContent = new Date(data.jatuhTempo).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
 
-  const total = data.totalTagihan;
-  const bayar = data.jumlahDibayar || 0;
-  const sisa = total - bayar;
+    document.getElementById("perusahaan").textContent = data.perusahaan?.toUpperCase() || '';
+    document.getElementById("nama").textContent = data.nama.toUpperCase();
+    document.getElementById("alamat").textContent = data.alamat || '';
+    document.getElementById("hp").textContent = data.hp || '';
 
-  document.getElementById("harga").textContent = rupiah(total);
-  document.getElementById("jumlah").textContent = rupiah(total);
-  document.getElementById("subtotal").textContent = rupiah(total);
-  document.getElementById("total").textContent = rupiah(total);
-  document.getElementById("pembayaran").textContent = rupiah(bayar);
-  document.getElementById("harusDibayar").textContent = rupiah(sisa);
-  document.getElementById("rekBank").textContent = data.rekText || "BANK MANDIRI\n119-000-6262-842\nY TEKAT HERI SUSANTO, ST";
+    document.getElementById("tipeKamar").textContent = data.tipeKamar;
+    document.getElementById("namaKamar").textContent = data.namaKamar;
 
-  if (bayar > 0) document.getElementById("statusBayar").textContent = "";
+    const inDate = new Date(data.checkIn).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+    const outDate = new Date(data.checkOut).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+    document.getElementById("periode").textContent = inDate + " s/d " + outDate;
 
-  setTimeout(() => window.print(), 1000);
-</script>
+    const total = data.totalTagihan;
+    const bayar = data.jumlahDibayar || 0;
+    const sisa = total - bayar;
+
+    document.getElementById("harga").textContent = rupiah(total);
+    document.getElementById("jumlah").textContent = rupiah(total);
+    document.getElementById("subtotal").textContent = rupiah(total);
+    document.getElementById("total").textContent = rupiah(total);
+    document.getElementById("pembayaran").textContent = rupiah(bayar);
+    document.getElementById("harusDibayar").textContent = rupiah(sisa);
+
+    if (bayar > 0) {
+      document.getElementById("statusBayar").textContent = "";
+    }
+
+    document.getElementById("rekBank").textContent = data.rekText || `BANK MANDIRI\n119-000-6262-842\nA.N. Y TEKAT HERI SUSANTO, ST`;
+
+    // Auto print setelah load
+    window.onload = () => setTimeout(() => window.print(), 800);
+  </script>
 </body>
 </html>
