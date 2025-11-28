@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Kostory</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="script.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1 style="text-align:center; color:#ff9800;">Kostory - Input Faktur</h1>
+    <p style="text-align:center;">Selamat datang, <span id="user"></span> | <a href="login.html">Logout</a></p>
+    <hr/>
+
+    <!-- FORM INPUT FAKTUR -->
+    <form id="fakturForm">
+      <h3>Data Pelanggan</h3>
+      <input type="text" id="searchCustomer" placeholder="Cari nama pelanggan..." />
+      <div id="customerList"></div>
+
+      <input type="text" id="nama" placeholder="Nama" required />
+      <input type="text" id="alamat" placeholder="Alamat" required />
+      <input type="text" id="hp" placeholder="No HP" required />
+      <input type="text" id="perusahaan" placeholder="Perusahaan" />
+
+      <h3>Faktur</h3>
+      <input type="text" id="noFaktur" readonly placeholder="Auto Generate" />
+      <input type="date" id="tglFaktur" required />
+      <input type="date" id="jatuhTempo" required />
+
+      <select id="tipeKamar" required>
+        <option value="">Pilih Tipe Kamar</option>
+        <option>Single Bed Standard</option>
+        <option>Double Bed Standard</option>
+        <option>Single Bed Xtra Service</option>
+        <option>Double Bed Xtra Service</option>
+        <option>Twin Bed Xtra Service</option>
+      </select>
+
+      <input type="text" id="namaKamar" placeholder="Nama Kamar (contoh: MEKAR 208)" required />
+      <input type="date" id="checkIn" required />
+      <input type="date" id="checkOut" required />
+
+      <input type="number" id="totalTagihan" placeholder="Total Tagihan (Rp)" required />
+      <input type="number" id="jumlahDibayar" placeholder="Jumlah Dibayar" value="0" />
+      <input type="date" id="tglBayar" />
+
+      <select id="rekeningBank"></select>
+      <button type="button" onclick="openBankModal()">Kelola Rekening</button>
+
+      <br/><br/>
+      <button type="submit">Simpan Faktur</button>
+      <button type="button" class="print-btn" onclick="cetakFaktur()">CETAK FAKTUR</button>
+    </form>
+
+    <!-- Modal Bank -->
+    <div id="bankModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+      <div style="background:white; margin:100px auto; padding:20px; width:500px; border-radius:10px;">
+        <h3>Kelola Rekening Bank</h3>
+        <input type="text" id="newBank" placeholder="Nama Bank + No Rek + Atas Nama" />
+        <button onclick="tambahBank()">Tambah</button>
+        <ul id="daftarBank"></ul>
+        <button onclick="document.getElementById('bankModal').style.display='none'">Tutup</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

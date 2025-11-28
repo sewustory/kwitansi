@@ -1,0 +1,13 @@
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+body { background:#f4f4f4; }
+.login-body { display:flex; justify-content:center; align-items:center; height:100vh; background:#ff9800; }
+.login-box { background:white; padding:40px; border-radius:10px; text-align:center; box-shadow:0 0 20px rgba(0,0,0,0.3); }
+.login-box h1 { font-size:40px; color:#ff9800; }
+.container { max-width:1000px; margin:20px auto; padding:20px; background:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+input, select, button { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:5px; }
+button { background:#ff9800; color:white; cursor:pointer; font-weight:bold; }
+button:hover { background:#e68900; }
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+th { background:#ff9800; color:white; }
+.print-btn { background:#ff5722 !important; }
