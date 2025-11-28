@@ -3,35 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Kostory</title>
+  <title>Kostory - Input Faktur</title>
   <link rel="stylesheet" href="style.css"/>
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="script.js" defer></script>
+  <style>
+    body { background: #f8f9fa; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container { max-width: 900px; margin: 20px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #ff9800; font-size: 36px; margin-bottom: 5px; }
+    .tagline { text-align: center; color: #777; font-size: 14px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; color: #333; }
+    input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+    input:focus, select:focus { outline: none; border-color: #ff9800; }
+    button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    .btn-orange { background: #ff9800; color: white; }
+    .btn-orange:hover { background: #e68900; }
+    .btn-green { background: #4caf50; color: white; }
+    .btn-red { background: #f44336; color: white; }
+    .btn-print { background: #ff5722; font-size: 18px; padding: 15px; }
+    .dropdown { position: relative; }
+    .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; z-index: 10; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .dropdown-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .dropdown-item:hover { background: #fff8e1; }
+    .bank-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; margin: 8px 0; border-radius: 6px; }
+    .highlight { background: #fff8e1; padding: 15px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; margin: 20px 0; }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1 style="text-align:center; color:#ff9800;">Kostory - Input Faktur</h1>
-    <p style="text-align:center;">Selamat datang, <span id="user"></span> | <a href="login.html">Logout</a></p>
-    <hr/>
+    <h1>Kostory</h1>
+    <p class="tagline">WHERE STORIES FIND HOME</p>
+    <p style="text-align:center;">Selamat datang, <strong><span id="user">User</span></strong> | <a href="login.html">Logout</a></p>
+    <hr style="margin:30px 0; border:1px solid #eee;">
 
-    <!-- FORM INPUT FAKTUR -->
     <form id="fakturForm">
-      <h3>Data Pelanggan</h3>
-      <input type="text" id="searchCustomer" placeholder="Cari nama pelanggan..." />
-      <div id="customerList"></div>
+      <!-- PELANGGAN -->
+      <div class="full">
+        <label>Pilih Pelanggan</label>
+        <div class="dropdown">
+          <input type="text" id="searchCustomer" placeholder="-- Pilih Pelanggan --" autocomplete="off">
+          <div id="customerDropdown" class="dropdown-list" style="display:none;"></div>
+        </div>
+        <button type="button" class="btn-orange" onclick="openNewCustomer()">+ Baru</button>
+      </div>
 
-      <input type="text" id="nama" placeholder="Nama" required />
-      <input type="text" id="alamat" placeholder="Alamat" required />
-      <input type="text" id="hp" placeholder="No HP" required />
-      <input type="text" id="perusahaan" placeholder="Perusahaan" />
+      <div id="newCustomerForm" style="display:none; background:#f0f8ff; padding:20px; border-radius:10px; margin:20px 0;">
+        <div class="form-grid">
+          <div>
+            <label>Nama Lengkap</label>
+            <input type="text" id="newNama" required>
+          </div>
+          <div>
+            <label>Kota</label>
+            <input type="text" id="newKota">
+          </div>
+          <div>
+            <label>No. HP</label>
+            <input type="text" id="newHp" required>
+          </div>
+          <div>
+            <label>Perusahaan (opsional)</label>
+            <input type="text" id="newPerusahaan">
+          </div>
+        </div>
+        <button type="button" class="btn-green" onclick="simpanPelangganBaru()">Save Pelanggan</button>
+        <button type="button" onclick="document.getElementById('newCustomerForm').style.display='none'">Batal</button>
+      </div>
 
-      <h3>Faktur</h3>
-      <input type="text" id="noFaktur" readonly placeholder="Auto Generate" />
-      <input type="date" id="tglFaktur" required />
-      <input type="date" id="jatuhTempo" required />
+      <!-- DATA FAKTUR -->
+      <div class="highlight full">
+        No. Faktur: <strong><span id="noFaktur">2511051</span></strong>
+      </div>
 
+      <div class="form-grid">
+        <div>
+          <label>Tanggal Faktur</label>
+          <input type="date" id="tglFaktur" required>
+        </div>
+        <div>
+          <label>Jatuh Tempo</label>
+          <input type="date" id="jatuhTempo" required>
+        </div>
+      </div>
+
+      <label>Tipe Kamar</label>
       <select id="tipeKamar" required>
-        <option value="">Pilih Tipe Kamar</option>
+        <option value="">-- Pilih Tipe Kamar --</option>
         <option>Single Bed Standard</option>
         <option>Double Bed Standard</option>
         <option>Single Bed Xtra Service</option>
@@ -39,32 +98,121 @@
         <option>Twin Bed Xtra Service</option>
       </select>
 
-      <input type="text" id="namaKamar" placeholder="Nama Kamar (contoh: MEKAR 208)" required />
-      <input type="date" id="checkIn" required />
-      <input type="date" id="checkOut" required />
+      <label>Nama Kamar</label>
+      <input type="text" id="namaKamar" placeholder="Contoh: MEKAR 208" required>
 
-      <input type="number" id="totalTagihan" placeholder="Total Tagihan (Rp)" required />
-      <input type="number" id="jumlahDibayar" placeholder="Jumlah Dibayar" value="0" />
-      <input type="date" id="tglBayar" />
-
-      <select id="rekeningBank"></select>
-      <button type="button" onclick="openBankModal()">Kelola Rekening</button>
-
-      <br/><br/>
-      <button type="submit">Simpan Faktur</button>
-      <button type="button" class="print-btn" onclick="cetakFaktur()">CETAK FAKTUR</button>
-    </form>
-
-    <!-- Modal Bank -->
-    <div id="bankModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
-      <div style="background:white; margin:100px auto; padding:20px; width:500px; border-radius:10px;">
-        <h3>Kelola Rekening Bank</h3>
-        <input type="text" id="newBank" placeholder="Nama Bank + No Rek + Atas Nama" />
-        <button onclick="tambahBank()">Tambah</button>
-        <ul id="daftarBank"></ul>
-        <button onclick="document.getElementById('bankModal').style.display='none'">Tutup</button>
+      <div class="form-grid">
+        <div>
+          <label>Check-in</label>
+          <input type="date" id="checkIn" required>
+        </div>
+        <div>
+          <label>Check-out</label>
+          <input type="date" id="checkOut" required>
+        </div>
       </div>
-    </div>
+
+      <label>Total Tagihan</label>
+      <input type="number" id="totalTagihan" placeholder="1950000" required>
+
+      <label>Jumlah Dibayar</label>
+      <input type="number" id="jumlahDibayar" value="0">
+
+      <label>Tanggal Bayar</label>
+      <input type="date" id="tglBayar">
+
+      <!-- REKENING BANK -->
+      <label>Pilih Rekening Bank</label>
+      <div class="dropdown">
+        <select id="rekeningBank"></select>
+        <button type="button" class="btn-orange" style="margin-top:8px;" onclick="openBankManager()">+ Tambah</button>
+      </div>
+
+      <div id="bankManager" style="display:none; margin-top:20px; padding:15px; background:#fff8e1; border-radius:8px;">
+        <input type="text" id="newBank" placeholder="BANK MANDIRI - 119-000-6262-842 - Y TEKAT HERI SUSANTO, ST" style="margin-bottom:10px;">
+        <button type="button" class="btn-green" onclick="tambahBank()">Tambah Rekening</button>
+        <div id="daftarBank"></div>
+      </div>
+
+      <div class="full" style="text-align:center; margin-top:30px;">
+        <button type="submit" class="btn-orange" style="padding:15px 40px; font-size:18px;">Simpan Faktur</button>
+        <button type="button" class="btn-print" onclick="cetakFaktur()">CETAK FAKTUR</button>
+      </div>
+    </form>
   </div>
+
+  <script>
+    // Fungsi tambahan untuk tombol-tombol baru
+    window.openNewCustomer = () => {
+      document.getElementById("newCustomerForm").style.display = "block";
+    };
+
+    window.simpanPelangganBaru = async () => {
+      const nama = document.getElementById("newNama").value.trim();
+      const hp = document.getElementById("newHp").value.trim();
+      if (!nama || !hp) return alert("Nama dan HP wajib diisi!");
+
+      const data = {
+        nama: nama,
+        alamat: document.getElementById("newKota").value || "",
+        hp: hp,
+        perusahaan: document.getElementById("newPerusahaan").value || ""
+      };
+
+      const { push, set, ref } = await import("./firebase-config.js");
+      const newRef = push(ref(db, "pelanggan"));
+      await set(newRef, data);
+      alert("Pelanggan baru disimpan!");
+
+      // Auto pilih pelanggan yang baru dibuat
+      document.getElementById("searchCustomer").value = nama;
+      document.getElementById("newCustomerForm").style.display = "none";
+      // Refresh dropdown
+      setupCustomerSearch();
+    };
+
+    window.openBankManager = () => {
+      document.getElementById("bankManager").style.display = "block";
+      loadBankList();
+    };
+
+    window.tambahBank = async () => {
+      const txt = document.getElementById("newBank").value.trim();
+      if (!txt) return alert("Isi rekening dulu!");
+      const { push, set, ref } = await import("./firebase-config.js");
+      const newRef = push(ref(db, "bank"));
+      await set(newRef, txt);
+      document.getElementById("newBank").value = "";
+      loadBankList();
+    };
+
+    async function loadBankList() {
+      const { get, ref } = await import("./firebase-config.js");
+      const snap = await get(ref(db, "bank"));
+      const container = document.getElementById("daftarBank");
+      container.innerHTML = "";
+      if (snap.exists()) {
+        const banks = snap.val();
+        Object.keys(banks).forEach(key => {
+          const div = document.createElement("div");
+          div.className = "bank-item";
+          div.innerHTML = `<span>${banks[key]}</span>`;
+          const btn = document.createElement("button");
+          btn.textContent = "Hapus";
+          btn.className = "btn-red";
+          btn.style.padding = "6px 12px";
+          btn.onclick = async () => {
+            if (confirm("Hapus rekening ini?")) {
+              const { remove } = await import("./firebase-config.js");
+              await remove(ref(db, `bank/${key}`));
+              loadBankList();
+            }
+          };
+          div.appendChild(btn);
+          container.appendChild(div);
+        });
+      }
+    }
+  </script>
 </body>
 </html>
