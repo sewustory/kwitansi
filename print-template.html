@@ -21,19 +21,9 @@
       border-bottom: 2px solid #000; 
       padding-bottom: 20px;
     }
-    .logo img { width: 130px; }
-    .logo-text { 
-      font-size: 52px; 
-      font-weight: bold; 
-      color: #000; 
-      margin-left: -10px; 
-      margin-top: -10px;
-    }
-    .tagline { 
-      font-size: 11px; 
-      color: #555; 
-      margin-top: -8px; 
-      letter-spacing: 2px;
+    .logo img { 
+      width: 150px;        /* sedikit lebih besar biar lebih gagah */
+      height: auto;
     }
     .contact { 
       text-align: right; 
@@ -42,7 +32,7 @@
       color: #444;
     }
 
-    /* Box info faktur di kanan atas - rapi */
+    /* Box info faktur di kanan atas */
     .invoice-info {
       float: right;
       width: 280px;
@@ -120,12 +110,9 @@
 <body>
 
   <div class="header">
-    <div>
-      <div class="logo">
-        <img src="assets/logo-kostory.png" alt="Kostory">
-      </div>
-      <div class="logo-text">Kostory</div>
-      <div class="tagline">WHERE STORIES FIND HOME</div>
+    <div class="logo">
+      <img src="assets/logo-kostory.png" alt="Kostory">
+      <!-- Tulisan Kostory & tagline sudah DIHAPUS -->
     </div>
     <div class="contact">
       Kostory Palembang<br>
@@ -137,7 +124,7 @@
     </div>
   </div>
 
-  <!-- Info Faktur yang rapi di kanan atas -->
+  <!-- Sisanya tetap sama -->
   <div class="invoice-info">
     <div><strong>Faktur #</strong> <span id="noFaktur"></span></div>
     <div><strong>Tanggal Faktur</strong> <span id="tglFaktur"></span></div>
@@ -205,7 +192,6 @@
 
     const rupiah = (n) => "Rp" + parseInt(n).toLocaleString('id-ID') + ",00";
 
-    // Isi data
     document.getElementById("noFaktur").textContent = data.noFaktur;
     document.getElementById("tglFaktur").textContent = new Date(data.tglFaktur).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
     document.getElementById("jatuhTempo").textContent = new Date(data.jatuhTempo).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
@@ -239,7 +225,6 @@
 
     document.getElementById("rekBank").textContent = data.rekText || `BANK MANDIRI\n119-000-6262-842\nA.N. Y TEKAT HERI SUSANTO, ST`;
 
-    // Auto print setelah load
     window.onload = () => setTimeout(() => window.print(), 800);
   </script>
 </body>
