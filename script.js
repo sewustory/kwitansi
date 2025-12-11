@@ -239,36 +239,67 @@ async function simpanFaktur(e) {
 }
 
 // CETAK FAKTUR — SUDAH 100% BENAR
-window.cetakFaktur = () => {
-  const noFaktur = document.getElementById("noFaktur").textContent;
-
-  if (!noFaktur || noFaktur.length < 6) {
-    alert("Isi data faktur dulu sebelum cetak!");
-    return;
-  }
-
+// CETAK FAKTUR + OTOMATIS SIMPAN (Versi AMAN & ANTI LUPA)
+window.cetakFaktur = async () => {
   if (!selectedCustomer && !document.getElementById("searchCustomer").value.trim()) {
     alert("Pilih pelanggan terlebih dahulu!");
     return;
   }
 
-  const data = {
-    noFaktur,
+  const dataFaktur = {
+    noFaktur: document.getElementById("noFaktur").textContent,
     tglFaktur: document.getElementById("tglFaktur").value,
     jatuhTempo: document.getElementById("jatuhTempo").value,
-    nama: selectedCustomer ? selectedCustomer.nama : document.getElementById("searchCustomer").value.trim(),
-    alamat: selectedCustomer ? (selectedCustomer.alamat || "") : "",
-    hp: selectedCustomer ? selectedCustomer.hp : "",
-    perusahaan: selectedCustomer ? (selectedCustomer.perusahaan || "") : "",
     tipeKamar: document.getElementById("tipeKamar").value,
     namaKamar: document.getElementById("namaKamar").value,
     checkIn: document.getElementById("checkIn").value,
     checkOut: document.getElementById("checkOut").value,
     totalTagihan: parseInt(document.getElementById("totalTagihan").value) || 0,
     jumlahDibayar: parseInt(document.getElementById("jumlahDibayar").value || 0),
-    rekText: banks[document.getElementById("rekeningBank").value] || "BANK MANDIRI\n119-000-6262-842\nY TEKAT HERI SUSANTO, ST",
+    tglBayar: document.getElementById("tglBayar").value || "",
+    rekeningBank: document.getElementById("rekeningBank").value || "",
+    nama: selectedCustomer ? selectedCustomer.nama : document.getElementById("searchCustomer").value.trim(),
+    alamat: selectedCustomer ? (selectedCustomer.alamat || "") : "",
+    hp: selectedCustomer ? selectedCustomer.hp : "",
+    perusahaan: selectedCustomer ? (selectedCustomer.perusahaan || "") : "",
   };
 
-  const params = encodeURIComponent(JSON.stringify(data));
-  window.open(`print-template.html?data=${params}`, "_blank");
+  try {
+    // Cek apakah no faktur ini sudah pernah disimpan
+    const snapshot = await get(ref(db, "faktur"));
+    let sudahAda = false;
+
+    if (snapshot.exists()) {
+      snapshot.forEach((child) => {
+        if (child.val().noFaktur === dataFaktur.noFaktur) {
+          // Update data yang sudah ada
+          set(ref(db, `faktur/${child.key}`), dataFaktur);
+          sudahAda = true;
+        }
+      });
+    }
+
+    // Kalau belum ada, buat baru
+    if (!sudahAda) {
+      const newRef = push(ref(db, "faktur"));
+      await set(newRef, dataFaktur);
+    }
+
+    // Sekarang cetak
+    const dataCetak = {
+      ...dataFaktur,
+      rekText: banks[dataFaktur.rekeningBank] || "BANK MANDIRI\n119-000-6262-842\nA.N. Y TEKAT HERI SUSANTO, ST",
+    };
+
+    const params = encodeURIComponent(JSON.stringify(dataCetak));
+    window.open(`print-template.html?data=${params}`, "_blank");
+
+    alert("Faktur berhasil disimpan & dicetak!");
+    
+    // Optional: generate nomor baru biar siap buat faktur berikutnya
+    generateNoFaktur();
+    
+  } catch (err) {
+    alert("Gagal: " + err.message);
+  }
 };
