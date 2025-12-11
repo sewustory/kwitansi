@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kostory - Daftar Faktur</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" defer">
+    import { db, ref, onValue, remove } from "./firebase-config.js";
+
+    let allFaktur = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = localStorage.getItem("user");
+      if (!user) location.href = "login.html";
+      document.getElementById("user").textContent = user.toUpperCase();
+
+      loadFaktur();
+      setupSearch();
+    });
+
+    function loadFaktur() {
+      onValue(ref(db, "faktur"), (snap) => {
+        allFaktur = [];
+        const tbody = document.querySelector("#tabelFaktur tbody");
+        tbody.innerHTML = "";
+
+        if (!snap.exists()) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Belum ada faktur</td></tr>';
+          return;
+        }
+
+        const data = snap.val();
+        let no = 1;
+        Object.keys(data).forEach(key => {
+          const f = data[key];
+          allFaktur.push({ key, ...f });
+
+          const tr = document.createElement("tr");
+          const sisa = f.totalTagihan - (f.jumlahDibayar || 0);
+          const status = sisa <= 0 ? "Lunas" : (f.jumlahDibayar > 0 ? "DP" : "Belum Bayar");
+
+          tr.innerHTML = `
+            <td>${no++}</td>
+            <td>${f.noFaktur || '-'}</td>
+            <td>${new Date(f.tglFaktur).toLocaleDateString('id-ID')}</td>
+            <td>${f.nama.toUpperCase()}</td>
+            <td>${f.namaKamar || '-'}</td>
+            <td class="text-right">${rupiah(f.totalTagihan)}</td>
+            <td class="text-right">${rupiah(f.jumlahDibayar || 0)}</td>
+            <td class="text-right"><strong>${rupiah(sisa)}</strong></td>
+            <td><span class="status ${status.toLowerCase().replace(' ', '-')}">${status}</span></td>
+            <td style="white-space:nowrap;">
+              <button class="btn-print-small" onclick="cetakUlang('${key}')">Cetak</button>
+              <button class="btn-delete" onclick="hapusFaktur('${key}', '${f.noFaktur}')">Hapus</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function setupSearch() {
+      document.getElementById("searchFaktur").addEventListener("input", () => {
+        const q = document.getElementById("searchFaktur").value.toLowerCase();
+        const rows = document.querySelectorAll("#tabelFaktur tbody tr");
+
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(q) ? "" : "none";
+        });
+      });
+    }
+
+    function rupiah(n) {
+      return "Rp" + parseInt(n || 0).toLocaleString('id-ID') + ",00";
+    }
+
+    window.cetakUlang = async (key) => {
+      const f = allFaktur.find(x => x.key === key);
+      if (!f) return alert("Data tidak ditemukan!");
+
+      const dataCetak = {
+        noFaktur: f.noFaktur,
+        tglFaktur: f.tglFaktur,
+        jatuhTempo: f.jatuhTempo,
+        nama: f.nama,
+        alamat: f.alamat || "",
+        hp: f.hp || "",
+        perusahaan: f.perusahaan || "",
+        tipeKamar: f.tipeKamar,
+        namaKamar: f.namaKamar,
+        checkIn: f.checkIn,
+        checkOut: f.checkOut,
+        totalTagihan: f.totalTagihan,
+        jumlahDibayar: f.jumlahDibayar || 0,
+        rekText: "BANK MANDIRI\n119-000-6262-842\nA.N. Y TEKAT HERI SUSANTO, ST" // bisa ditambah dari bank nanti
+      };
+
+      const params = encodeURIComponent(JSON.stringify(dataCetak));
+      window.open(`print-template.html?data=${params}`, "_blank");
+    };
+
+    window.hapusFaktur = async (key, noFaktur) => {
+      if (!confirm(`Yakin hapus faktur ${noFaktur}?`)) return;
+      try {
+        await remove(ref(db, `faktur/${key}`));
+        alert("Faktur berhasil dihapus!");
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    };
+  </script>
+  <style>
+    .container { max-width: 1300px; margin: 20px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { color: #ff9800; text-align: center; }
+    .search-box { margin: 20px 0; }
+    input { padding: 12px; width: 100%; max-width: 500px; border-radius: 8px; border: 1px solid #ddd; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: #ff9800; color: white; }
+    .text-right { text-align: right; }
+    .status { padding: 4px 10px; border-radius: 20px; color: white; font-size: 12px; }
+    .status.lunas { background: #4caf50; }
+    }
+    .status.dp { background: #ff9800; }
+    .status.belum-bayar { background: #f44336; }
+    .btn-print-small { background:#ff5722; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+    .btn-delete { background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Daftar Faktur Kostory</h1>
+    <p style="text-align:center; margin:20px 0;">
+      <strong><span id="user">User</span></strong> • 
+      <a href="dashboard.html">Input Faktur</a> • 
+      <a href="pelanggan.html">Daftar Pelanggan</a> • 
+      <a href="faktur.html">Daftar Faktur</a> • 
+      <a href="login.html">Logout</a>
+    </p>
+    <hr>
+
+    <div class="search-box">
+      <input type="text" id="searchFaktur" placeholder="Cari nama, no faktur, kamar..." />
+    </div>
+
+    <table id="tabelFaktur">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>No Faktur</th>
+          <th>Tanggal</th>
+          <th>Nama Penyewa</th>
+          <th>Kamar</th>
+          <th>Total Tagihan</th>
+          <th>Sudah Bayar</th>
+          <th>Sisa</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</body>
+</html>
